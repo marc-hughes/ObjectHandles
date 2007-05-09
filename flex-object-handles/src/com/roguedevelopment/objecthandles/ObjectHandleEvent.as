@@ -24,12 +24,22 @@
  *
  **/
 
+/**
+ * This class represents the events that can be dispatched by the ObjectHandles class.
+ * 
+ * These events are dispatched on the completion of a user gesture.  So if a user slowly resizes
+ * an object over a long distance, only one event is dispatched at the end of that action.
+ * 
+ * For resizing to the left or up, both move and resize events are dispatched.
+ * 
+ **/
 package com.roguedevelopment.objecthandles
 {
 	import flash.events.Event;
 
 	public class ObjectHandleEvent extends Event
 	{
+	
 		public static const OBJECT_MOVED_EVENT:String = "objectMovedEvent";
 		public static const OBJECT_RESIZED_EVENT:String = "objectResizedEvent";
 

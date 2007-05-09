@@ -24,20 +24,31 @@
  *
  **/
 
+/**
+ * This class represents one of the small boxes drawn around the object that can be dragged to resize.
+ **/
 package com.roguedevelopment.objecthandles
 {
 	import mx.core.UIComponent;
 
 	public class Handle extends UIComponent
 	{
+		// Does this handle let us resize down?
 		public var resizeDown:Boolean = false;
+		
+		// Does this handle let us resize up?
 		public var resizeUp:Boolean = false;
+		
+		// Does this handle let us resize left?
 		public var resizeLeft:Boolean = false;
+		
+		// Does this handle let us resize to the right?
 		public var resizeRight:Boolean = false;
 
 		public function Handle()
 		{
 			super();
+			// TODO: Draw prettier handles.
 			graphics.lineStyle(1,0x888888);
 			graphics.beginFill(0x888888,0.3);
 			graphics.drawRect(0,0,4,4);

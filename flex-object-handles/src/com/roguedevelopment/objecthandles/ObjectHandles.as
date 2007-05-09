@@ -23,6 +23,7 @@
  * 
  * 
  **/
+ 
 package com.roguedevelopment.objecthandles
 {
 	import mx.containers.Canvas;
@@ -35,6 +36,8 @@ package com.roguedevelopment.objecthandles
 	import flash.display.Stage;
 	import flash.filters.GlowFilter;
 
+	/** The main component in the ObjectHandle package that provides most of the functionality.
+	 **/
 	public class ObjectHandles extends Canvas
 	{	
 		/**
@@ -124,10 +127,12 @@ package com.roguedevelopment.objecthandles
 		{
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_MOVED_EVENT) );
 		}
+		
 		protected function dispatchResized() : void
 		{
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_RESIZED_EVENT) );
 		}
+		
 		protected function onMouseDown(event:MouseEvent) : void
 		{
 			// Add a stage listener in case the mouse up comes out of the control.
@@ -159,6 +164,7 @@ package com.roguedevelopment.objecthandles
 			isMoving = true;
 			
 		}
+		
 		protected function onMouseMove(event:MouseEvent) : void
 		{
 			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
@@ -210,6 +216,7 @@ package com.roguedevelopment.objecthandles
 			}
 			
 		}
+		
 		protected function onMouseOut(event:MouseEvent) : void
 		{
 			if( event.buttonDown ){ return; }
@@ -221,6 +228,7 @@ package com.roguedevelopment.objecthandles
 			}
 			
 		}
+		
 		protected function onMouseHover(event:MouseEvent) : void
 		{
 			filters = hoverFilters;
@@ -231,6 +239,9 @@ package com.roguedevelopment.objecthandles
 			
 		}
 		
+		/**
+		 * On startup, creates the various handles that the user can interact with.
+		 **/
 		protected function createHandles() : Array
 		{
 			var handles:Array = new Array();
