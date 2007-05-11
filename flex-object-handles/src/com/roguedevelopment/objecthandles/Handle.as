@@ -30,9 +30,13 @@
 package com.roguedevelopment.objecthandles
 {
 	import mx.core.UIComponent;
+	import flash.events.MouseEvent;
+	import flash.events.Event;
 
 	public class Handle extends UIComponent
 	{
+	
+		
 		// Does this handle let us resize down?
 		public var resizeDown:Boolean = false;
 		
@@ -48,14 +52,17 @@ package com.roguedevelopment.objecthandles
 		public function Handle()
 		{
 			super();
+			width = 4;
+			height = 4;
 			// TODO: Draw prettier handles.
 			graphics.lineStyle(1,0x888888);
 			graphics.beginFill(0x888888,0.3);
 			graphics.drawRect(0,0,4,4);
 			graphics.endFill();
 
-			mouseEnabled = false;
+			
 		}
+		
 
 	}
 }

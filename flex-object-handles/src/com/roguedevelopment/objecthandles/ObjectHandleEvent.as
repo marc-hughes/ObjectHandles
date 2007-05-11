@@ -40,8 +40,21 @@ package com.roguedevelopment.objecthandles
 	public class ObjectHandleEvent extends Event
 	{
 	
+		/** Dispatched once a move action has completed.
+		 **/
 		public static const OBJECT_MOVED_EVENT:String = "objectMovedEvent";
+		
+		/** Dispatched once a resize action has completed.
+		 **/
 		public static const OBJECT_RESIZED_EVENT:String = "objectResizedEvent";
+		
+		/** Dispatched while the object is resizing for each incremental resize.
+		 **/
+		public static const OBJECT_RESIZING_EVENT:String = "objectResizingEvent";
+		
+		/** Dispatched while the object is moving for each incremental move.
+		 **/
+		public static const OBJECT_MOVING_EVENT:String = "objectMovingEvent";		
 
 		public function ObjectHandleEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

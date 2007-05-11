@@ -22,6 +22,13 @@
  * 
  * 
  * 
+ * -------------------------------------------------------------------------------------------
+ * 
+ * Description:
+ *    ObjectHandles gives the user the ability to move and resize a component with the mouse.
+ * 
+ * 
+ * 
  **/
  
 package com.roguedevelopment.objecthandles
@@ -35,30 +42,69 @@ package com.roguedevelopment.objecthandles
 	import flash.geom.Point;
 	import flash.display.Stage;
 	import flash.filters.GlowFilter;
+	import flash.filters.GradientGlowFilter;
 
-	/** The main component in the ObjectHandle package that provides most of the functionality.
+	/** 
+	 * The main component in the ObjectHandle package that provides most of the functionality.
 	 **/
-	public class ObjectHandles extends Canvas
+	public class ObjectHandles extends Canvas implements Selectable
 	{	
 		/**
 		 * When the mouse is hovering over the item, these filters will be set.
 		 **/
+ 	    [Inspectable]
 		public var hoverFilters:Array = new Array();
 		
+		/** 
+		 * Is the user allowed to vertically resize the component?
+		 **/
 		[Inspectable(defaultValue=true)]		
         public var allowVResize:Boolean = true;
         
+		/** 
+		 * Is the user allowed to horizontally resize the component?
+		 **/
 		[Inspectable(defaultValue=true)]		
         public var allowHResize:Boolean = true;
         
+        /**
+        * When resizing, should the component maintain aspect ratio?
+        **/
 		[Inspectable(defaultValue=true)]		
         public var maintainAspectRatio:Boolean = true;
         
+        /** 
+        * Is the component allowed to be moved vertically?
+        **/
 		[Inspectable(defaultValue=true)]		
         public var allowVMove:Boolean = true;
         
+        /** 
+        * Is the component allowed to be moved horizontally?
+        **/
 		[Inspectable(defaultValue=true)]		
         public var allowHMove:Boolean = true;
+        
+        /**
+        * "anchors" the component to an X coordinate.
+        * The component will be allowed to move left and right and resized horizontally, 
+        * but some part of it must always cross the given X coordinate.
+        * 
+        * A value of -1 will cause this parameter to be ignored.
+        **/
+        [Inspectable(default=-1)]
+        public var xAnchor:Number = -1;
+
+        /**
+        * "anchors" the component to Y coordinate.
+        * The component will be allowed to move up and down and resized vertically, 
+        * but some part of it must always cross the given Y coordinate.
+        * 
+        * A value of -1 will cause this parameter to be ignored.
+        **/
+        [Inspectable(default=-1)]
+        public var yAnchor:Number = -1;
+        
         
         protected var wasMoved:Boolean = false;
         protected var wasResized:Boolean = false;
@@ -75,9 +121,14 @@ package com.roguedevelopment.objecthandles
 		protected var originalPosition:Point = new Point();
 		protected var originalSize:Point = new Point();
 		
+		private var originalFilters:Array;
+		
 		public function ObjectHandles()
 		{
 			super();
+			
+			creationPolicy = "all";
+			
 			mouseChildren = false;
 			mouseEnabled = true;
 			buttonMode = false;
@@ -95,9 +146,8 @@ package com.roguedevelopment.objecthandles
 			addEventListener( MouseEvent.MOUSE_OVER, onMouseHover );
 			
 			parent.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
-
-
 			
+			SelectionManager.instance.addSelectable(this);
 		}
 		
 		protected function onMouseUp(event:MouseEvent) : void
@@ -123,6 +173,16 @@ package com.roguedevelopment.objecthandles
 			stage.removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
 		}
 		
+		protected function dispatchMoving() : void
+		{
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_MOVING_EVENT) );
+		}
+
+		protected function dispatchResizing() : void
+		{
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_RESIZING_EVENT) );
+		}
+ 		
 		protected function dispatchMoved() : void
 		{
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_MOVED_EVENT) );
@@ -135,11 +195,18 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseDown(event:MouseEvent) : void
 		{
+					
+			SelectionManager.instance.setSelected(this);
+			
 			// Add a stage listener in case the mouse up comes out of the control.
 			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp );
 			
-			var hits:Array = getObjectsUnderPoint( new Point(event.stageX, event.stageY) );
-			localClickPoint = globalToLocal( new Point(event.stageX, event.stageY) );
+			var sp:Point = new Point(event.stageX, event.stageY);
+			
+			localClickPoint = globalToLocal( sp );
+			
+			var hits:Array = stage.getObjectsUnderPoint( sp );
+			
 			originalSize.x = width;
 			originalSize.y = height;
 			originalPosition.x = x;
@@ -150,17 +217,22 @@ package com.roguedevelopment.objecthandles
 				var handleIndex:int = handles.indexOf(o);
 				if( handleIndex >= 0)
 				{
-					var handle:Handle = handles[handleIndex] as Handle;
-					isResizingDown = handle.resizeDown;
-					isResizingLeft = handle.resizeLeft;
-					isResizingRight = handle.resizeRight;					
-					isResizingUp = handle.resizeUp;
+					if( handles[handleIndex] is Handle )
+					{
+						var handle:Handle = handles[handleIndex] as Handle;
+						isResizingDown = handle.resizeDown;
+						isResizingLeft = handle.resizeLeft;
+						isResizingRight = handle.resizeRight;					
+						isResizingUp = handle.resizeUp;
+					}
 					return;
 				}				
 			}
 			
 			isResizingDown = false;
 			isResizingRight = false;
+			isResizingUp = false;
+			isResizingLeft = false;
 			isMoving = true;
 			
 		}
@@ -206,24 +278,18 @@ package com.roguedevelopment.objecthandles
 			}
 			
 			
-			if( height < minHeight)
-			{
-				height = minHeight;
-			}
-			if( width < minWidth)
-			{
-				width = minWidth;
-			}
+			
+			if( wasMoved ) { applyConstraints(); dispatchMoving() ; }
+			if( wasResized ) { applyConstraints(); dispatchResizing() ; }
 			
 		}
 		
 		protected function onMouseOut(event:MouseEvent) : void
 		{
 			if( event.buttonDown ){ return; }
-			filters = [];
+//			filters = [];
 			for each (var u:UIComponent in handles)
-			{
-				
+			{				
 				u.setVisible(false);
 			}
 			
@@ -231,12 +297,11 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseHover(event:MouseEvent) : void
 		{
-			filters = hoverFilters;
+//			filters = hoverFilters;
 			for each (var u:UIComponent in handles)
 			{
 				u.setVisible(true);
-			}
-			
+			}			
 		}
 		
 		/**
@@ -246,14 +311,14 @@ package com.roguedevelopment.objecthandles
 		{
 			var handles:Array = new Array();
 			// position ... top,left,bottom,right ... 1=on 
-			var handleOptions:Array = [  {resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:false, style:{top:0, horizontalCenter:-2 }},
+			var handleOptions:Array = [  {resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:false, style:{top:0, horizontalCenter:0 }},
 			                             {resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:true,style:{top:0, left:0 }},
-			                             {resizeUp:true, resizeDown:false, resizeRight:true, resizeLeft:false,style:{top:0, right:4}},
-			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:false,style:{bottom:4, horizontalCenter:-2 }},
-			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:true,style:{bottom:4, left:0 }},
-			                             {resizeUp:false, resizeDown:true, resizeRight:true, resizeLeft:false,style:{bottom:4, right:4}},
-			                             {resizeUp:false, resizeDown:false, resizeRight:false, resizeLeft:true,style:{verticalCenter:-2, left:0}},
-			                             {resizeUp:false, resizeDown:false, resizeRight:true, resizeLeft:false,style:{verticalCenter:-2, right:4}}
+			                             {resizeUp:true, resizeDown:false, resizeRight:true, resizeLeft:false,style:{top:0, right:0}},
+			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:false,style:{bottom:0, horizontalCenter:0 }},
+			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:true,style:{bottom:0, left:0 }},
+			                             {resizeUp:false, resizeDown:true, resizeRight:true, resizeLeft:false,style:{bottom:0, right:0}},
+			                             {resizeUp:false, resizeDown:false, resizeRight:false, resizeLeft:true,style:{verticalCenter:0, left:0}},
+			                             {resizeUp:false, resizeDown:false, resizeRight:true, resizeLeft:false,style:{verticalCenter:0, right:0}}
 										];	
 			
 			for each (var option:Object in handleOptions)
@@ -268,27 +333,82 @@ package com.roguedevelopment.objecthandles
 					continue;					
 				}
 				
-				var style:CSSStyleDeclaration = new CSSStyleDeclaration();
-				
-				var handle:Handle = new Handle();
-				
+				var handle:Handle = new Handle();				
 				handle.resizeDown = option.resizeDown;
 				handle.resizeLeft = option.resizeLeft;
 				handle.resizeRight = option.resizeRight;
 				handle.resizeUp = option.resizeUp;
 				handle.visible = false;
-				
+								
 				for (var prop:String in option.style)
 				{
-	 				style.setStyle(prop, option.style[prop] );	  	
+	 				handle.setStyle(prop, option.style[prop] );	  	
 	  			}
-				handle.styleDeclaration = style;
+	  			
 				addChild(handle);	
+				trace(childDescriptors.length);
 				handles.push(handle);		
-			}
-										
+			}										
 			return handles;
+		}		
+		
+		
+		protected function applyConstraints():void
+		{
+			if( height < minHeight)
+			{
+				height = minHeight;
+			}
+			if( width < minWidth)
+			{
+				width = minWidth;
+			}
+			
+			if( ! allowHMove )
+			{
+				x = originalPosition.x;
+			}
+			if( ! allowVMove )
+			{
+				y = originalPosition.y;
+			}
+			
+			if( (xAnchor != -1 ) && (xAnchor < x) )
+			{
+				x = xAnchor;
+			}
+
+			if( (xAnchor != -1 ) && (xAnchor > (x+width)) )
+			{
+				x = xAnchor - width;
+			}
+			
+			if( (yAnchor != -1 ) && (yAnchor < y) )
+			{
+				y = yAnchor;
+			}
+
+			if( (yAnchor != -1 ) && (yAnchor > (y+height)) )
+			{
+				y = yAnchor - height;
+			}
 		}
 		
+		public function select() : void
+		{
+			originalFilters = filters;
+			filters = [ new GlowFilter(0x000033, 0.17) ];
+			
+		}
+		public function deselect() : void
+		{
+			filters = originalFilters;
+		}
+		
+		
+
 	}
+	
+
+	
 }
