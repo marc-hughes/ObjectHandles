@@ -55,6 +55,15 @@ package com.roguedevelopment.objecthandles
 		/** Dispatched while the object is moving for each incremental move.
 		 **/
 		public static const OBJECT_MOVING_EVENT:String = "objectMovingEvent";		
+		
+		/** 
+		 * Dispatched when the user selects the object.
+		 **/
+		public static const OBJECT_SELECTED:String = "objectSelected";
+		
+		/** Dispatched when the user deselects the object.
+		 **/
+		public static const OBJECT_DESELECTED:String = "objectDeselected";
 
 		public function ObjectHandleEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

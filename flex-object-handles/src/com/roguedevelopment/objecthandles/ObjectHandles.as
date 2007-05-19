@@ -41,19 +41,12 @@ package com.roguedevelopment.objecthandles
 	import mx.styles.CSSStyleDeclaration;
 	import flash.geom.Point;
 	import flash.display.Stage;
-	import flash.filters.GlowFilter;
-	import flash.filters.GradientGlowFilter;
 
 	/** 
 	 * The main component in the ObjectHandle package that provides most of the functionality.
 	 **/
 	public class ObjectHandles extends Canvas implements Selectable
 	{	
-		/**
-		 * When the mouse is hovering over the item, these filters will be set.
-		 **/
- 	    [Inspectable]
-		public var hoverFilters:Array = new Array();
 		
 		/** 
 		 * Is the user allowed to vertically resize the component?
@@ -121,7 +114,6 @@ package com.roguedevelopment.objecthandles
 		protected var originalPosition:Point = new Point();
 		protected var originalSize:Point = new Point();
 		
-		private var originalFilters:Array;
 		
 		public function ObjectHandles()
 		{
@@ -140,10 +132,7 @@ package com.roguedevelopment.objecthandles
 			handles = createHandles();
 		
 			addEventListener( MouseEvent.MOUSE_DOWN, onMouseDown );
-			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );
-			
-			addEventListener( MouseEvent.MOUSE_OUT, onMouseOut );
-			addEventListener( MouseEvent.MOUSE_OVER, onMouseHover );
+			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );					
 			
 			parent.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
 			
@@ -152,15 +141,16 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseUp(event:MouseEvent) : void
 		{
-			if( wasMoved )
+			if(wasResized )
+			{
+			    dispatchResized();
+			}
+			else if( wasMoved )
 			{
 				dispatchMoved();
 			}
 			
-			if(wasResized )
-			{
-				dispatchResized();
-			}
+			
 			
 			isResizingDown = false;
 			isResizingRight = false;		
@@ -283,24 +273,12 @@ package com.roguedevelopment.objecthandles
 			if( wasResized ) { applyConstraints(); dispatchResizing() ; }
 			
 		}
-		
-		protected function onMouseOut(event:MouseEvent) : void
+
+		protected function showHandles( visible:Boolean ) : void
 		{
-			if( event.buttonDown ){ return; }
-//			filters = [];
-			for each (var u:UIComponent in handles)
-			{				
-				u.setVisible(false);
-			}
-			
-		}
-		
-		protected function onMouseHover(event:MouseEvent) : void
-		{
-//			filters = hoverFilters;
 			for each (var u:UIComponent in handles)
 			{
-				u.setVisible(true);
+				u.setVisible(visible);
 			}			
 		}
 		
@@ -395,14 +373,14 @@ package com.roguedevelopment.objecthandles
 		}
 		
 		public function select() : void
-		{
-			originalFilters = filters;
-			filters = [ new GlowFilter(0x000033, 0.17) ];
-			
+		{	
+			showHandles(true);
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_SELECTED) );		
 		}
 		public function deselect() : void
 		{
-			filters = originalFilters;
+			showHandles(false);
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_DESELECTED) );		
 		}
 		
 		
