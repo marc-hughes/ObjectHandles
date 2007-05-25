@@ -112,7 +112,7 @@ package com.roguedevelopment.objecthandles
 		
 		protected var localClickPoint:Point = new Point();
 		protected var originalPosition:Point = new Point();
-		protected var originalSize:Point = new Point();
+		protected var originalSize:Point = new Point();		
 		
 		
 		public function ObjectHandles()
@@ -231,29 +231,47 @@ package com.roguedevelopment.objecthandles
 		{
 			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
 			
+			var desiredPos:Point = new Point();
+			var desiredSize:Point = new Point();
+			
+		
+			
+			if( parent is Canvas)
+			{
+				var parentCanvas:Canvas = parent as Canvas;
+				dest.x += parentCanvas.horizontalScrollPosition;
+				dest.y += parentCanvas.verticalScrollPosition;
+			}
+			
+			desiredSize.x = width;
+			desiredSize.y = height;
+			desiredPos.x = x;
+			desiredPos.y = y;
+						
+			
 			if( isResizingRight && event.buttonDown)
 			{				
-				width = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
+				desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
 				wasResized = true;
 			}
 			if( isResizingDown && event.buttonDown)
 			{				
-				height = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
+				desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
 				wasResized = true;
 			}
 			if( isResizingLeft && event.buttonDown)
 			{		
 				
-				x = dest.x - localClickPoint.x;
-				width = originalSize.x + (originalPosition.x - x);
+				desiredPos.x = dest.x - localClickPoint.x;
+				desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);
 				wasResized = true;
 				wasMoved = true;
 			}
 			if( isResizingUp && event.buttonDown)
 			{				
 				
-				y = dest.y - localClickPoint.y;
-				height = originalSize.y + (originalPosition.y - y);												
+				desiredPos.y = dest.y - localClickPoint.y;
+				desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);												
 				wasResized = true;
 				wasMoved = true;
 			}
@@ -262,15 +280,23 @@ package com.roguedevelopment.objecthandles
 			if( isMoving && event.buttonDown)
 			{
 				
-				x = dest.x - localClickPoint.x;
-				y = dest.y - localClickPoint.y;	
+				desiredPos.x = dest.x - localClickPoint.x;
+				desiredPos.y = dest.y - localClickPoint.y;	
 				wasMoved = true;			
 			}
 			
 			
+			if( wasMoved || wasResized )
+			{
+				applyConstraints(desiredPos,desiredSize);
+				x = desiredPos.x;
+				y = desiredPos.y
+				width = desiredSize.x;
+				height = desiredSize.y;
+			}
 			
-			if( wasMoved ) { applyConstraints(); dispatchMoving() ; }
-			if( wasResized ) { applyConstraints(); dispatchResizing() ; }
+			if( wasMoved ) {  dispatchMoving() ; }
+			if( wasResized ) {  dispatchResizing() ; }
 			
 		}
 
@@ -311,6 +337,17 @@ package com.roguedevelopment.objecthandles
 					continue;					
 				}
 				
+				if( (! allowVMove) && option.resizeUp  )
+				{
+					continue;					
+				}
+
+
+				if( (! allowHMove) && option.resizeLeft  )
+				{
+					continue;					
+				}
+				
 				var handle:Handle = new Handle();				
 				handle.resizeDown = option.resizeDown;
 				handle.resizeLeft = option.resizeLeft;
@@ -331,45 +368,89 @@ package com.roguedevelopment.objecthandles
 		}		
 		
 		
-		protected function applyConstraints():void
+		protected function applyConstraints(desiredPositon:Point, desiredSize:Point):void
 		{
-			if( height < minHeight)
+			var diff:int;
+			
+			// Minimum height check
+			if( desiredSize.y < minHeight)
 			{
-				height = minHeight;
+				diff = minHeight - desiredSize.y;
+				desiredSize.y = minHeight;
+				
+				if( desiredPositon.y != y )
+				{
+					desiredPositon.y -= diff;
+				}
+				
 			}
-			if( width < minWidth)
+			
+			// Minimum width check
+			if( desiredSize.x < minWidth)
 			{
-				width = minWidth;
+				diff = minWidth - desiredSize.x;
+				desiredSize.x = minWidth;
+				
+				if( desiredPositon.x != x )
+				{
+					desiredPositon.x -= diff;
+				}
 			}
+			
+			
 			
 			if( ! allowHMove )
 			{
-				x = originalPosition.x;
+				desiredPositon.x = originalPosition.x;
 			}
 			if( ! allowVMove )
 			{
-				y = originalPosition.y;
+				desiredPositon.y = originalPosition.y;
 			}
 			
-			if( (xAnchor != -1 ) && (xAnchor < x) )
+			if( (yAnchor != -1 ) && (yAnchor < desiredPositon.y) )
 			{
-				x = xAnchor;
+				diff = desiredPositon.y - yAnchor;
+				desiredPositon.y = yAnchor;
+												
+				if( desiredSize.y != height )
+				{
+					desiredSize.y += diff;	
+				}
 			}
 
-			if( (xAnchor != -1 ) && (xAnchor > (x+width)) )
+			if( (xAnchor != -1 ) && (xAnchor < desiredPositon.x) )
 			{
-				x = xAnchor - width;
+				diff = desiredPositon.x - xAnchor;
+				desiredPositon.x = xAnchor;
+												
+				if( desiredSize.x != width )
+				{
+					desiredSize.x += diff;	
+				}
+			}
+
+			if( (xAnchor != -1 ) && (xAnchor > (desiredPositon.x + desiredSize.x)) )
+			{
+				diff = xAnchor - ( desiredPositon.x + desiredSize.x) ;																
+				if( desiredSize.x != width )
+				{
+					desiredSize.x += diff;	
+				}
+				desiredPositon.x = xAnchor - desiredSize.x;
 			}
 			
-			if( (yAnchor != -1 ) && (yAnchor < y) )
+			if( (yAnchor != -1 ) && (yAnchor > (desiredPositon.y + desiredSize.y)) )
 			{
-				y = yAnchor;
+				diff = yAnchor - ( desiredPositon.y + desiredSize.y) ;																
+				if( desiredSize.y != height )
+				{
+					desiredSize.y += diff;	
+				}
+				desiredPositon.y = yAnchor - desiredSize.y;
 			}
-
-			if( (yAnchor != -1 ) && (yAnchor > (y+height)) )
-			{
-				y = yAnchor - height;
-			}
+	
+	
 		}
 		
 		public function select() : void

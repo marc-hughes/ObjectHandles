@@ -1,40 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" xmlns:ns1="com.roguedevelopment.objecthandles.*">
-	<mx:Canvas top="0" bottom="0" right="0" left="0" backgroundAlpha="1.0" backgroundColor="#ffffff" id="moveableCanvas2">
-
-
-		<ns1:ObjectHandles x="10" y="20" width="307" height="30" minHeight="30" minWidth="100" >
-			<mx:Button label="Normal" width="100%" height="100%" />
-		</ns1:ObjectHandles>
-		
-		<ns1:ObjectHandles x="10" y="60" width="307" height="30" minHeight="30" minWidth="250" hoverFilters="{[new GlowFilter(0x000033,0.25)]}">
-			<mx:Button label="This has a hover filter set." width="100%" height="100%" />
-		</ns1:ObjectHandles>
-
-		<ns1:ObjectHandles x="10" y="100" width="307" height="30" minHeight="30" minWidth="250" allowVResize="false">
-			<mx:Button label="Vertical Resize Restricted" width="100%" height="100%" />
-		</ns1:ObjectHandles>
-
-		<ns1:ObjectHandles x="10" y="140" width="307" height="30" minHeight="30" minWidth="250" allowHResize="false">
-			<mx:Button label="Horizontal Resize Restricted" width="100%" height="100%" />
-		</ns1:ObjectHandles>
-		
-
-		<ns1:ObjectHandles x="400" y="340" width="107" height="20" minHeight="20" minWidth="30">
-			<mx:Label text="Move Me!"  width="100%" height="100%"/>
-		</ns1:ObjectHandles>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*">
 	
-		<ns1:ObjectHandles x="400" y="10" width="107" height="108" minHeight="30" minWidth="30">
-			<mx:VBox borderStyle="none"  top="0" left="0" right="0" bottom="0">
-				<mx:Button width="100%" height="50%" />
-				<mx:Button width="100%" height="50%" />
-			</mx:VBox>
-		</ns1:ObjectHandles>
-		<ns1:ObjectHandles x="400" y="220" width="107" height="108" minHeight="30" minWidth="30">
-			<mx:Image top="4" bottom="4" right="4" source="http://www.rogue-development.com/images/marc.jpg" scaleContent="true" autoLoad="true" left="4"/>
-		</ns1:ObjectHandles>
 
-	</mx:Canvas>	
+
+		<mx:LinkBar dataProvider="{exampleStack}" width="100%"  backgroundColor="#FFFFFF"/>
+
+		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">
+			<mx:Canvas label="Generic Example" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
+				<mx:Label text="Normal functionality with no constraints set." />
+				<oh:ObjectHandles x="10" y="20" width="307" height="30" minHeight="30" minWidth="100" >
+					<mx:Button label="Move Me" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				<oh:ObjectHandles x="10" y="60" width="307" height="30" minHeight="30" minWidth="100" >
+					<mx:Button label="Move Me" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				
+				<oh:ObjectHandles x="10" y="158" width="107" height="108" minHeight="30" minWidth="30">
+					<mx:VBox borderStyle="none"  top="0" left="0" right="0" bottom="0">
+						<mx:Button width="100%" height="50%" />
+						<mx:Button width="100%" height="50%" />
+					</mx:VBox>
+				</oh:ObjectHandles>
+			</mx:Canvas>
+			
+			<mx:Canvas label="Horizontal Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+				<mx:Label text="The top component has a horizontal movement constraint, and the bottom one has a horizontal resizing constraint." />
+				<oh:ObjectHandles x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowHMove="false">
+					<mx:Button label="Movement Constraint" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				<oh:ObjectHandles x="10" y="80" width="307" height="30" minHeight="30" minWidth="250" allowHResize="false">
+					<mx:Button label="Sizing Constraint" width="100%" height="100%" />
+				</oh:ObjectHandles>
+			</mx:Canvas>			
+			
+			<mx:Canvas label="Vertical Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+				<mx:Label text="The top component has a vertical movement constraint, and the bottom one has a vertical resizing constraint." />
+				<oh:ObjectHandles x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowVMove="false">
+					<mx:Button label="Movement Constraint" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				<oh:ObjectHandles x="10" y="80" width="307" height="30" minHeight="30" minWidth="250" allowVResize="false">
+					<mx:Button label="Sizing Constraint" width="100%" height="100%" />
+				</oh:ObjectHandles>
+			</mx:Canvas>	
+			
+			<mx:Canvas label="Sizing Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1">
+				<mx:Label text="These can be moved, but not resized" />
+				<oh:ObjectHandles x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowHResize="false" allowVResize="false">
+					<mx:Button label="Move me!" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				<oh:ObjectHandles x="10" y="80" width="307" height="30" minHeight="30" minWidth="250" allowHResize="false" allowVResize="false">
+					<mx:Button label="Move me!" width="100%" height="100%" />
+				</oh:ObjectHandles>
+			</mx:Canvas>			
+			
+			<mx:Canvas label="Anchor Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+				<mx:Label text="An anchor causes the component to always cross a coordinate.  There are lines drawn below to show the anchors, but no visual que is neccessary." />
+
+				<mx:VRule x="300" height="400" y="65"/>
+				<mx:HRule x="300" width="400" y="65" />
+				
+				<oh:ObjectHandles x="133" y="229" width="250" height="30" minHeight="30" minWidth="250" xAnchor="300">
+					<mx:Button label="Horizontal Anchor" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				
+				<oh:ObjectHandles x="417" y="60" width="307" height="30" minHeight="30" minWidth="250" yAnchor="65">
+					<mx:Button label="Vertical Anchor" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				
+				<oh:ObjectHandles x="130" y="60" width="250" height="60" minHeight="30" minWidth="250" yAnchor="65" xAnchor="300">
+					<mx:Button label="Both Anchors" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				
+			</mx:Canvas>			
+			
+					
+		</mx:ViewStack>
+		<mx:Script>
+			<![CDATA[
+				import com.roguedevelopment.objecthandles.SelectionManager;
+			]]>
+		</mx:Script>
+
+
+
 
 
 </mx:Application>
