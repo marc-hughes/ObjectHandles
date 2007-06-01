@@ -10,9 +10,22 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>com.pf.fdt.IncrementalProjectBuilder1</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>com.adobe.flexbuilder.project.flexnature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
+		<nature>com.pf.fdt.FlashNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>core</name>
+			<type>2</type>
+			<location>C:/FlashTools/mtasc-1.13/std8</location>
+		</link>
+	</linkedResources>
 </projectDescription>

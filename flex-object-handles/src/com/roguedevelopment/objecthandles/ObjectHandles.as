@@ -120,7 +120,6 @@ package com.roguedevelopment.objecthandles
 			super();
 			
 			creationPolicy = "all";
-			
 			mouseChildren = false;
 			mouseEnabled = true;
 			buttonMode = false;

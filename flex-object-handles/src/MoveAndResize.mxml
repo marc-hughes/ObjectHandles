@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*">
-	
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*" creationComplete="init()" xmlns:popupbar="com.roguedevelopment.popupbar.*">
+	<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.MouseCursors;
+			protected function init() : void
+			{
+				MouseCursors.instance();
+			}
+		]]>
+	</mx:Script>
 
 
 		<mx:LinkBar dataProvider="{exampleStack}" width="100%"  backgroundColor="#FFFFFF"/>
 
-		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">
+		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">			
 			<mx:Canvas label="Generic Example" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
 				<mx:Label text="Normal functionality with no constraints set." />
 				<oh:ObjectHandles x="10" y="20" width="307" height="30" minHeight="30" minWidth="100" >
@@ -71,7 +79,13 @@
 					<mx:Button label="Both Anchors" width="100%" height="100%" />
 				</oh:ObjectHandles>
 				
-			</mx:Canvas>			
+			</mx:Canvas>	
+			
+			<mx:HBox label="Button Test" backgroundColor="#c0c0c0">
+				<popupbar:PopupBar height="38" width="46" items="[FlagRnd,FlagSq,FlagTipIn,FlagTipOut,FlagWavy]" />
+				<mx:Button height="100" width="100"  /> 
+
+			</mx:HBox>		
 			
 					
 		</mx:ViewStack>
