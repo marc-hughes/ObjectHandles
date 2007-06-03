@@ -41,6 +41,7 @@ package com.roguedevelopment.objecthandles
 	import mx.styles.CSSStyleDeclaration;
 	import flash.geom.Point;
 	import flash.display.Stage;
+	import mx.managers.CursorManager;
 
 	/** 
 	 * The main component in the ObjectHandle package that provides most of the functionality.
@@ -99,6 +100,13 @@ package com.roguedevelopment.objecthandles
         public var yAnchor:Number = -1;
         
         
+        /** 
+        * The mouse cursors to use.
+        * 
+        * To change the default mouse cursors, subclass ObjectHandlesMouseCursors and assign it here.
+        **/
+        public var mouseCursors:ObjectHandlesMouseCursors = new ObjectHandlesMouseCursors();
+        
         protected var wasMoved:Boolean = false;
         protected var wasResized:Boolean = false;
             
@@ -114,6 +122,8 @@ package com.roguedevelopment.objecthandles
 		protected var originalPosition:Point = new Point();
 		protected var originalSize:Point = new Point();		
 		
+		protected var currentCursor:MouseCursorDetails = null;
+		protected var currentCursorId:int = -1;
 		
 		public function ObjectHandles()
 		{
@@ -123,7 +133,7 @@ package com.roguedevelopment.objecthandles
 			mouseChildren = false;
 			mouseEnabled = true;
 			buttonMode = false;
-			addEventListener( FlexEvent.CREATION_COMPLETE, init );	
+			addEventListener( FlexEvent.CREATION_COMPLETE, init );						
 		}
 		
 		protected function init(event:FlexEvent) : void
@@ -131,11 +141,64 @@ package com.roguedevelopment.objecthandles
 			handles = createHandles();
 		
 			addEventListener( MouseEvent.MOUSE_DOWN, onMouseDown );
-			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );					
+			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );		
+			
+			addEventListener( MouseEvent.MOUSE_OVER, onMouseOver );			
+			addEventListener( MouseEvent.MOUSE_OUT, onMouseOut );
 			
 			parent.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
 			
 			SelectionManager.instance.addSelectable(this);
+		}
+		
+		protected function onMouseOver(event:MouseEvent) : void
+		{
+			if( ! event.buttonDown )
+			{
+				setMouseCursor(event.stageX, event.stageY);
+			}
+		}
+		
+		protected function setMouseCursor(x:Number, y:Number): void
+		{
+			var c:MouseCursorDetails;
+			for each (var handle:Handle in handles )
+			{
+				if( handle.hitTestPoint( x,y ) )
+				{					
+					c = mouseCursors.getCursor(handle.getCursorName() );										
+					if( c != currentCursor )
+					{
+						currentCursor = c;
+						CursorManager.removeCursor(currentCursorId);
+						currentCursorId = CursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
+					}					
+					return;
+				}
+			}
+			
+			if( hitTestPoint(x,y) )
+			{
+				c = mouseCursors.getCursor("SizeAll");
+				if( currentCursor != c )
+				{
+					currentCursor = c;
+					CursorManager.removeCursor(currentCursorId);
+					currentCursorId = CursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
+				}
+				return;
+			}
+			
+			currentCursor = null;
+			CursorManager.removeCursor(currentCursorId);
+		}
+		protected function onMouseOut(event:MouseEvent) : void
+		{
+			if( ! event.buttonDown )
+			{
+				currentCursor = null;
+				CursorManager.removeCursor(currentCursorId);
+			}
 		}
 		
 		protected function onMouseUp(event:MouseEvent) : void
@@ -160,6 +223,8 @@ package com.roguedevelopment.objecthandles
 			wasResized = false;
 			
 			stage.removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
+			
+			setMouseCursor( event.stageX, event.stageY );
 		}
 		
 		protected function dispatchMoving() : void
@@ -184,6 +249,7 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseDown(event:MouseEvent) : void
 		{
+			setMouseCursor(event.stageX, event.stageY );
 					
 			SelectionManager.instance.setSelected(this);
 			
@@ -228,6 +294,13 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseMove(event:MouseEvent) : void
 		{
+			
+			if( ! event.buttonDown )
+			{
+				setMouseCursor( event.stageX, event.stageY );
+				return;
+			}
+			
 			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
 			
 			var desiredPos:Point = new Point();
@@ -353,6 +426,7 @@ package com.roguedevelopment.objecthandles
 				handle.resizeRight = option.resizeRight;
 				handle.resizeUp = option.resizeUp;
 				handle.visible = false;
+				
 								
 				for (var prop:String in option.style)
 				{

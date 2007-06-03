@@ -57,10 +57,47 @@ package com.roguedevelopment.objecthandles
 			// TODO: Draw prettier handles.
 			graphics.lineStyle(1,0x888888);
 			graphics.beginFill(0x888888,0.3);
-			graphics.drawRect(0,0,4,4);
+			graphics.drawRect(0,0,5,5);
 			graphics.endFill();
 
 			
+		}
+		
+		public function getCursorName() : String
+		{
+			if( !resizeDown && resizeLeft && !resizeRight && resizeUp )
+			{
+				return "SizeNWSE";
+			}
+			if( resizeDown && !resizeLeft && resizeRight && !resizeUp )
+			{
+				return "SizeNWSE";
+			}
+			if( !resizeDown && !resizeLeft && resizeRight && resizeUp )
+			{
+				return "SizeNESW";
+			}
+			if( resizeDown && resizeLeft && !resizeRight && !resizeUp )
+			{
+				return "SizeNESW";
+			}
+			if( resizeDown && !resizeLeft && !resizeRight && !resizeUp )
+			{
+				return "SizeNS";	
+			}
+			if( !resizeDown && !resizeLeft && !resizeRight && resizeUp )
+			{
+				return "SizeNS";	
+			}
+			if( !resizeDown && resizeLeft && !resizeRight && !resizeUp )
+			{
+				return "SizeWE";
+			}
+			if( !resizeDown && !resizeLeft && resizeRight && !resizeUp )
+			{
+				return "SizeWE";
+			}
+			return "";
 		}
 		
 
