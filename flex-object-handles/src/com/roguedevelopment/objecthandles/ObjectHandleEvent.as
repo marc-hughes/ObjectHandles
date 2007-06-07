@@ -51,6 +51,15 @@ package com.roguedevelopment.objecthandles
 		/** Dispatched while the object is resizing for each incremental resize.
 		 **/
 		public static const OBJECT_RESIZING_EVENT:String = "objectResizingEvent";
+
+		/** Dispatched once a resize action has completed.
+		 **/
+		public static const OBJECT_ROTATED_EVENT:String = "objectRotatedEvent";
+		
+		/** Dispatched while the object is resizing for each incremental resize.
+		 **/
+		public static const OBJECT_ROTATING_EVENT:String = "objectRotatingEvent";
+
 		
 		/** Dispatched while the object is moving for each incremental move.
 		 **/

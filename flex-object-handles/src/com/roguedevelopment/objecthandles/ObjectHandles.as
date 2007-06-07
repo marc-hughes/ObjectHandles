@@ -42,10 +42,24 @@ package com.roguedevelopment.objecthandles
 	import flash.geom.Point;
 	import flash.display.Stage;
 	import mx.managers.CursorManager;
+	import mx.core.Container;
+	import mx.effects.Rotate;
+	import flash.geom.Matrix;
+	import mx.containers.HBox;
+	import flash.display.DisplayObject;
+	import mx.core.ScrollPolicy;
 
 	/** 
 	 * The main component in the ObjectHandle package that provides most of the functionality.
 	 **/
+	[Event(name="objectRotated", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectRotating", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectMoved", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectResized", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectSelected", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectDeselected", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectMoving", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]
+	[Event(name="objectResizing", type="com.roguedevelopment.objecthandles.ObjectHandleEvent")]	
 	public class ObjectHandles extends Canvas implements Selectable
 	{	
 		
@@ -55,6 +69,19 @@ package com.roguedevelopment.objecthandles
 		[Inspectable(defaultValue=true)]		
         public var allowVResize:Boolean = true;
         
+        
+		/** 
+		 * Is the user allowed to rotate the component?
+		 **/
+		[Inspectable(defaultValue=true)]		
+        public var allowRotate:Boolean = true;
+
+       /**
+        * When rotating, should the component be rotated by centerpoint?
+        **/
+		[Inspectable(defaultValue=true)]		
+        public var rotateFromCenter:Boolean = true;
+                
 		/** 
 		 * Is the user allowed to horizontally resize the component?
 		 **/
@@ -109,9 +136,11 @@ package com.roguedevelopment.objecthandles
         
         protected var wasMoved:Boolean = false;
         protected var wasResized:Boolean = false;
-            
+		protected var wasRotated:Boolean = false;            
+
 		protected var handles:Array;
 		
+		protected var isRotating:Boolean = false;
 		protected var isResizingDown:Boolean = false;
 		protected var isResizingRight:Boolean = false;		
 		protected var isResizingLeft:Boolean = false;
@@ -119,11 +148,17 @@ package com.roguedevelopment.objecthandles
 		protected var isMoving:Boolean = false;
 		
 		protected var localClickPoint:Point = new Point();
+		protected var localClickRotation:Number = 0;
+		protected var localClickAngle:Number = 0;
+		
 		protected var originalPosition:Point = new Point();
 		protected var originalSize:Point = new Point();		
+		protected var originalRotation:Number = 0;
 		
 		protected var currentCursor:MouseCursorDetails = null;
 		protected var currentCursorId:int = -1;
+		
+		protected var rotateEffect:Rotate;
 		
 		public function ObjectHandles()
 		{
@@ -134,12 +169,25 @@ package com.roguedevelopment.objecthandles
 			mouseEnabled = true;
 			buttonMode = false;
 			addEventListener( FlexEvent.CREATION_COMPLETE, init );						
+			horizontalScrollPolicy = ScrollPolicy.OFF;
+			verticalScrollPolicy = ScrollPolicy.OFF;
+			
 		}
 		
 		protected function init(event:FlexEvent) : void
 		{
 			handles = createHandles();
-		
+			
+			rotateEffect = new Rotate();
+			
+			
+//			contentBox.
+			
+/*			contentBox.setStyle("top",0);
+			contentBox.setStyle("bottom",0);			
+			contentBox.setStyle("left",0);
+			contentBox.setStyle("right",0);						
+	*/	
 			addEventListener( MouseEvent.MOUSE_DOWN, onMouseDown );
 			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );		
 			
@@ -151,6 +199,7 @@ package com.roguedevelopment.objecthandles
 			SelectionManager.instance.addSelectable(this);
 		}
 		
+		
 		protected function onMouseOver(event:MouseEvent) : void
 		{
 			if( ! event.buttonDown )
@@ -161,6 +210,7 @@ package com.roguedevelopment.objecthandles
 		
 		protected function setMouseCursor(x:Number, y:Number): void
 		{
+			if( mouseCursors == null ) {return;}
 			var c:MouseCursorDetails;
 			for each (var handle:Handle in handles )
 			{
@@ -203,10 +253,15 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseUp(event:MouseEvent) : void
 		{
+			if(wasRotated )
+			{
+			    dispatchRotated();
+			}
+			
 			if(wasResized )
 			{
-			    dispatchResized();
-			}
+			    dispatchResized();			    
+			}			
 			else if( wasMoved )
 			{
 				dispatchMoved();
@@ -218,15 +273,26 @@ package com.roguedevelopment.objecthandles
 			isResizingRight = false;		
 			isResizingLeft = false;
 			isResizingUp = false;
+			isRotating = false;
 			isMoving = false;
 			wasMoved = false
 			wasResized = false;
+			wasRotated = false;
 			
 			stage.removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
 			
 			setMouseCursor( event.stageX, event.stageY );
 		}
 		
+		protected function dispatchRotating() : void
+		{
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_ROTATING_EVENT) );
+		}
+		 
+		protected function dispatchRotated() : void
+		{
+			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_ROTATED_EVENT) );
+		}
 		protected function dispatchMoving() : void
 		{
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_MOVING_EVENT) );
@@ -259,29 +325,29 @@ package com.roguedevelopment.objecthandles
 			var sp:Point = new Point(event.stageX, event.stageY);
 			
 			localClickPoint = globalToLocal( sp );
+			localClickAngle = getMouseAngle();
+			localClickRotation = rotation;
 			
-			var hits:Array = stage.getObjectsUnderPoint( sp );
+			//var hits:Array = stage.getObjectsUnderPoint( sp );
 			
 			originalSize.x = width;
 			originalSize.y = height;
 			originalPosition.x = x;
 			originalPosition.y = y;
 			
-			for each (var o:Object in hits)
+			for each (var handle:Handle in handles )
 			{
-				var handleIndex:int = handles.indexOf(o);
-				if( handleIndex >= 0)
-				{
-					if( handles[handleIndex] is Handle )
-					{
-						var handle:Handle = handles[handleIndex] as Handle;
+				
+					if( handle.hitTestPoint(event.stageX, event.stageY) )
+					{						
 						isResizingDown = handle.resizeDown;
 						isResizingLeft = handle.resizeLeft;
 						isResizingRight = handle.resizeRight;					
 						isResizingUp = handle.resizeUp;
+						isRotating = handle.rotate;
+						return;
 					}
-					return;
-				}				
+
 			}
 			
 			isResizingDown = false;
@@ -300,12 +366,11 @@ package com.roguedevelopment.objecthandles
 				setMouseCursor( event.stageX, event.stageY );
 				return;
 			}
-			
 			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
 			
 			var desiredPos:Point = new Point();
 			var desiredSize:Point = new Point();
-			
+			var desiredRotation:Number = 0;		
 		
 			
 			if( parent is Canvas)
@@ -315,11 +380,35 @@ package com.roguedevelopment.objecthandles
 				dest.y += parentCanvas.verticalScrollPosition;
 			}
 			
+			desiredRotation = rotation;
 			desiredSize.x = width;
 			desiredSize.y = height;
 			desiredPos.x = x;
 			desiredPos.y = y;
-						
+			
+
+			
+			var bowAngle:Number = 0;//Math.PI / 180 * Math.abs(rotation);
+			var theMatrix:Matrix;
+			var rotatedPoint:Point;
+
+			var xAlt:Number = localClickPoint.x;
+			var yAlt:Number = localClickPoint.y;	
+			
+			var tX:Number = 0;
+			var tP:Point = new Point();
+			
+			bowAngle = Math.PI / 180 * rotation * -1;						
+
+
+			theMatrix = new Matrix(Math.cos(bowAngle), - Math.sin(bowAngle), Math.sin(bowAngle), Math.cos(bowAngle));
+			rotatedPoint = theMatrix.transformPoint(new Point(xAlt, yAlt));
+			
+			if( isRotating && event.buttonDown)
+			{		
+				desiredRotation = Math.round(localClickRotation - localClickAngle + getMouseAngle());		
+				wasRotated = true;
+			}			
 			
 			if( isResizingRight && event.buttonDown)
 			{				
@@ -331,17 +420,15 @@ package com.roguedevelopment.objecthandles
 				desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
 				wasResized = true;
 			}
-			if( isResizingLeft && event.buttonDown)
-			{		
-				
+			if( isResizingLeft && event.buttonDown && rotation == 0)
+			{	
 				desiredPos.x = dest.x - localClickPoint.x;
 				desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);
 				wasResized = true;
 				wasMoved = true;
 			}
-			if( isResizingUp && event.buttonDown)
-			{				
-				
+			if( isResizingUp && event.buttonDown  && rotation == 0)
+			{	
 				desiredPos.y = dest.y - localClickPoint.y;
 				desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);												
 				wasResized = true;
@@ -351,11 +438,14 @@ package com.roguedevelopment.objecthandles
 			
 			if( isMoving && event.buttonDown)
 			{
+									
+				desiredPos.y = dest.y - rotatedPoint.y;
+				desiredPos.x = dest.x - rotatedPoint.x;
+
 				
-				desiredPos.x = dest.x - localClickPoint.x;
-				desiredPos.y = dest.y - localClickPoint.y;	
 				wasMoved = true;			
 			}
+			
 			
 			
 			if( wasMoved || wasResized )
@@ -367,8 +457,29 @@ package com.roguedevelopment.objecthandles
 				height = desiredSize.y;
 			}
 			
+			if(wasRotated){			
+				
+				if(rotateFromCenter){
+					if(rotateEffect.isPlaying){
+						rotateEffect.end();
+					}
+					rotateEffect = new Rotate();
+					rotateEffect.target	   = this;
+					rotateEffect.duration  = 1;
+					rotateEffect.angleFrom = rotation;
+					rotateEffect.angleTo   = desiredRotation;
+					rotateEffect.originX   = width/2;
+					rotateEffect.originY   = height/2;
+					rotateEffect.play();
+				}else{
+					rotation = desiredRotation;
+				}				
+			}
+			
+			
 			if( wasMoved ) {  dispatchMoving() ; }
 			if( wasResized ) {  dispatchResizing() ; }
+			if( wasRotated ) {dispatchRotating(); }
 			
 		}
 
@@ -387,18 +498,23 @@ package com.roguedevelopment.objecthandles
 		{
 			var handles:Array = new Array();
 			// position ... top,left,bottom,right ... 1=on 
-			var handleOptions:Array = [  {resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:false, style:{top:0, horizontalCenter:0 }},
-			                             {resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:true,style:{top:0, left:0 }},
-			                             {resizeUp:true, resizeDown:false, resizeRight:true, resizeLeft:false,style:{top:0, right:0}},
-			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:false,style:{bottom:0, horizontalCenter:0 }},
-			                             {resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:true,style:{bottom:0, left:0 }},
-			                             {resizeUp:false, resizeDown:true, resizeRight:true, resizeLeft:false,style:{bottom:0, right:0}},
-			                             {resizeUp:false, resizeDown:false, resizeRight:false, resizeLeft:true,style:{verticalCenter:0, left:0}},
-			                             {resizeUp:false, resizeDown:false, resizeRight:true, resizeLeft:false,style:{verticalCenter:0, right:0}}
+			var handleOptions:Array = [  {rotate:false, resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:false, style:{top:0, horizontalCenter:0 }},
+			                             {rotate:false, resizeUp:true, resizeDown:false, resizeRight:false, resizeLeft:true,style:{top:0, left:0 }},
+			                             {rotate:false, resizeUp:true, resizeDown:false, resizeRight:true, resizeLeft:false,style:{top:0, right:0}},
+			                             {rotate:false, resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:false,style:{bottom:0, horizontalCenter:0 }},
+			                             {rotate:false, resizeUp:false, resizeDown:true, resizeRight:false, resizeLeft:true,style:{bottom:0, left:0 }},
+			                             {rotate:false, resizeUp:false, resizeDown:true, resizeRight:true, resizeLeft:false,style:{bottom:0, right:0}},
+			                             {rotate:false, resizeUp:false, resizeDown:false, resizeRight:false, resizeLeft:true,style:{verticalCenter:0, left:0}},
+			                             {rotate:false, resizeUp:false, resizeDown:false, resizeRight:true, resizeLeft:false,style:{verticalCenter:0, right:0}},
+			                             {rotate:true,  resizeUp:false, resizeDown:false, resizeRight:false, resizeLeft:false,style:{verticalCenter:2, right:-30}}
 										];	
 			
 			for each (var option:Object in handleOptions)
 			{
+				if( (! allowRotate ) && option.rotate )				
+				{
+					continue;
+				}
 				if( (! allowHResize) && (option.resizeLeft || option.resizeRight) )
 				{
 					continue;					
@@ -425,6 +541,7 @@ package com.roguedevelopment.objecthandles
 				handle.resizeLeft = option.resizeLeft;
 				handle.resizeRight = option.resizeRight;
 				handle.resizeUp = option.resizeUp;
+				handle.rotate = option.rotate;
 				handle.visible = false;
 				
 								
@@ -433,8 +550,7 @@ package com.roguedevelopment.objecthandles
 	 				handle.setStyle(prop, option.style[prop] );	  	
 	  			}
 	  			
-				addChild(handle);	
-				trace(childDescriptors.length);
+				super.addChild(handle);	
 				handles.push(handle);		
 			}										
 			return handles;
@@ -537,7 +653,9 @@ package com.roguedevelopment.objecthandles
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_DESELECTED) );		
 		}
 		
-		
+		protected function getMouseAngle():Number{
+			return Math.atan2(parent.mouseY - y, parent.mouseX - x) * 180/Math.PI; 
+		}
 
 	}
 	

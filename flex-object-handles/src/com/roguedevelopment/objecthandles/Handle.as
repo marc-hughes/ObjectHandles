@@ -25,7 +25,7 @@
  **/
 
 /**
- * This class represents one of the small boxes drawn around the object that can be dragged to resize.
+ * This class represents one of the small boxes drawn around the object that can be dragged to resize or rotate
  **/
 package com.roguedevelopment.objecthandles
 {
@@ -48,19 +48,38 @@ package com.roguedevelopment.objecthandles
 		
 		// Does this handle let us resize to the right?
 		public var resizeRight:Boolean = false;
+		
+		protected var _rotate:Boolean;
+		public function set rotate(val:Boolean):void { _rotate=val; draw(); }
+		public function get rotate():Boolean { return _rotate;  }		
 
 		public function Handle()
 		{
 			super();
 			width = 4;
 			height = 4;
+		}
+		
+		protected function draw() : void
+		{
+			graphics.clear();
 			// TODO: Draw prettier handles.
-			graphics.lineStyle(1,0x888888);
-			graphics.beginFill(0x888888,0.3);
-			graphics.drawRect(0,0,5,5);
-			graphics.endFill();
-
-			
+			if( rotate )
+			{
+				graphics.lineStyle(1,0x888888);
+				graphics.beginFill(0x888888,0.3);
+				graphics.drawCircle(0,0,4);
+				graphics.moveTo(-2,0);
+				graphics.lineTo(-28,0);
+				graphics.endFill();				
+			}
+			else
+			{
+				graphics.lineStyle(1,0x888888);
+				graphics.beginFill(0x888888,0.3);
+				graphics.drawRect(0,0,4,4);
+				graphics.endFill();
+			}
 		}
 		
 		public function getCursorName() : String
@@ -96,6 +115,11 @@ package com.roguedevelopment.objecthandles
 			if( !resizeDown && !resizeLeft && resizeRight && !resizeUp )
 			{
 				return "SizeWE";
+			}
+			
+			if( rotate )
+			{
+				return "SizeAll";
 			}
 			return "";
 		}
