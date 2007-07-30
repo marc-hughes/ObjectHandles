@@ -22,36 +22,22 @@
  * 
  * -------------------------------------------------------------------------------------------
  * 
- * Cursor graphics Copyright (C) Dunkelstern <jschriewer at arcor dot de> and released under an MIT license.
+ * Cursor graphics Copyright (C) Evi Skitsanos, contrubted to project.
  * 
  **/
-
 package com.roguedevelopment.objecthandles
 {
-	import flash.display.Loader;
-	import mx.core.FlexSprite;
-	import flash.utils.Dictionary;
-	import flash.ui.Mouse;
-	import mx.managers.CursorManager;
-	import mx.controls.SWFLoader;
-	import flash.events.Event;
-	import flash.display.MovieClip;
-	import mx.managers.PopUpManager;
-	import mx.core.FlexMovieClip;
-	import mx.core.UIComponent;
-	import flash.events.MouseEvent;
-	
-	public class ObjectHandlesMouseCursors implements OHMouseCursors
+	public class ObjectHandlesMouseCursors2 implements OHMouseCursors
 	{
-		[Embed("../../../assets/cursors/blue/SizeNS.png")]
+		[Embed("../../../assets/cursors/set1/resize-v.png")]
 		protected var sizeNS:Class;
-		[Embed("../../../assets/cursors/blue/SizeAll.png")]
+		[Embed("../../../assets/cursors/set2/move.png")]
 		protected var sizeAll:Class;
-		[Embed("../../../assets/cursors/blue/SizeNESW.png")]
+		[Embed("../../../assets/cursors/set1/resize-l.png")]
 		protected var sizeNESW:Class;
-		[Embed("../../../assets/cursors/blue/SizeNWSE.png")]
+		[Embed("../../../assets/cursors/set1/resize-r.png")]
 		protected var sizeNWSE:Class;
-		[Embed("../../../assets/cursors/blue/SizeWE.png")]
+		[Embed("../../../assets/cursors/set1/resize-h.png")]
 		protected var sizeWE:Class;
 	
 		protected var map:Object = new Object();
@@ -61,14 +47,13 @@ package com.roguedevelopment.objecthandles
 			return map[name];
 		}
 		
-		public function ObjectHandlesMouseCursors() : void
+		public function ObjectHandlesMouseCursors2() : void
 		{
-			map["SizeNS"] = new MouseCursorDetails(sizeNS, -6, -15 );
-			map["SizeAll"] = new MouseCursorDetails(sizeAll, -15, -15 );
-			map["SizeNESW"] = new MouseCursorDetails(sizeNESW, -10, -10 );
-			map["SizeNWSE"] = new MouseCursorDetails(sizeNWSE, -10, -10 );
-			map["SizeWE"] = new MouseCursorDetails(sizeWE, -15, -6 );
+			map["SizeNS"] = new MouseCursorDetails(sizeNS, -5, -8 );
+			map["SizeAll"] = new MouseCursorDetails(sizeAll, -11, -13 );
+			map["SizeNWSE"] = new MouseCursorDetails(sizeNESW, -5, -6 );
+			map["SizeNESW"] = new MouseCursorDetails(sizeNWSE, -5, -6 );
+			map["SizeWE"] = new MouseCursorDetails(sizeWE, -9, -6 );
 		}
-		
 	}
 }

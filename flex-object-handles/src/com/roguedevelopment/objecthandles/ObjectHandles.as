@@ -22,7 +22,7 @@
  * 
  * -------------------------------------------------------------------------------------------
  *  
- * Contrubtions by:
+ * Contributions by:
  *    Alexander Kludt
  *    Thomas Jakobi
  * 
@@ -131,12 +131,17 @@ package com.roguedevelopment.objecthandles
         public var yAnchor:Number = -1;
         
         
+        /**
+        * Static method so we only have a single cursor object in memory.
+        **/
+        protected static var defaultCursors:OHMouseCursors = new ObjectHandlesMouseCursors2();
+        
         /** 
         * The mouse cursors to use.
         * 
         * To change the default mouse cursors, subclass ObjectHandlesMouseCursors and assign it here.
         **/
-        public var mouseCursors:ObjectHandlesMouseCursors = new ObjectHandlesMouseCursors();
+        public var mouseCursors:OHMouseCursors = defaultCursors;
         
         protected var wasMoved:Boolean = false;
         protected var wasResized:Boolean = false;
@@ -183,15 +188,7 @@ package com.roguedevelopment.objecthandles
 			handles = createHandles();
 			
 			rotateEffect = new Rotate();
-			
-			
-//			contentBox.
-			
-/*			contentBox.setStyle("top",0);
-			contentBox.setStyle("bottom",0);			
-			contentBox.setStyle("left",0);
-			contentBox.setStyle("right",0);						
-	*/	
+						
 			addEventListener( MouseEvent.MOUSE_DOWN, onMouseDown );
 			addEventListener( MouseEvent.MOUSE_UP, onMouseUp );		
 			
@@ -364,6 +361,7 @@ package com.roguedevelopment.objecthandles
 		
 		protected function onMouseMove(event:MouseEvent) : void
 		{
+			if( ! visible ) { return; }
 			
 			if( ! event.buttonDown )
 			{

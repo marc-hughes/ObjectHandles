@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*" creationComplete="init()" xmlns:popupbar="com.roguedevelopment.popupbar.*">
 	<mx:Script>
-		<![CDATA[		
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.ObjectHandlesMouseCursors;		
 			protected function init() : void
 			{
 			}
@@ -19,6 +20,10 @@
 				</oh:ObjectHandles>
 				<oh:ObjectHandles mouseCursors="{null}" allowRotate="false" x="10" y="60" width="307" height="30" minHeight="30" minWidth="100" >
 					<mx:Button label="Move Me (No Mouse Cursors)" width="100%" height="100%"  x="0"/>
+				</oh:ObjectHandles>
+
+				<oh:ObjectHandles mouseCursors="{new ObjectHandlesMouseCursors()}" allowRotate="false" x="10" y="90" width="307" height="30" minHeight="30" minWidth="100" >
+					<mx:Button label="Move Me (Alternative Cursors)" width="100%" height="100%"  x="0"/>
 				</oh:ObjectHandles>
 				
 				<oh:ObjectHandles allowRotate="false" x="10" y="158" width="107" height="108" minHeight="30" minWidth="30">
