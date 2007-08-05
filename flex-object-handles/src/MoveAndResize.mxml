@@ -13,7 +13,7 @@
 		<mx:LinkBar dataProvider="{exampleStack}" width="100%"  backgroundColor="#FFFFFF"/>
 
 		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">			
-			<mx:Canvas label="Generic Example" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
+			<mx:Canvas label="Generic" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Normal functionality with no constraints set." />
 				<oh:ObjectHandles allowRotate="false" x="10" y="20" width="307" height="30" minHeight="30" minWidth="100" >
 					<mx:Button label="Move Me" width="100%" height="100%" />
@@ -34,7 +34,7 @@
 				</oh:ObjectHandles>
 			</mx:Canvas>
 			
-			<mx:Canvas label="Rotating Examples" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+			<mx:Canvas label="Rotating" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Rotation and resizing is not 100% yet, but you can see some of it here.  Note that text doesn't appear once an object is rotated unless you embed the font, this is a general Flex limitation." />
 				<oh:ObjectHandles  x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowVResize="false" >
 					<mx:Button label="Rotate, no resize" width="100%" height="100%" />
@@ -44,7 +44,7 @@
 				</oh:ObjectHandles>
 			</mx:Canvas>		
 			
-			<mx:Canvas label="Horizontal Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+			<mx:Canvas label="Horizontal" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="The top component has a horizontal movement constraint, and the bottom one has a horizontal resizing constraint." />
 				<oh:ObjectHandles allowRotate="false" x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowHMove="false">
 					<mx:Button label="Movement Constraint" width="100%" height="100%" />
@@ -54,7 +54,7 @@
 				</oh:ObjectHandles>
 			</mx:Canvas>			
 			
-			<mx:Canvas label="Vertical Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+			<mx:Canvas label="Vertical" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="The top component has a vertical movement constraint, and the bottom one has a vertical resizing constraint." />
 				<oh:ObjectHandles allowRotate="false" x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowVMove="false">
 					<mx:Button label="Movement Constraint" width="100%" height="100%" />
@@ -64,7 +64,7 @@
 				</oh:ObjectHandles>
 			</mx:Canvas>	
 			
-			<mx:Canvas label="Sizing Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1">
+			<mx:Canvas label="Sizing" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1">
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="These can be moved, but not resized" />
 				<oh:ObjectHandles allowRotate="false" x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowHResize="false" allowVResize="false">
 					<mx:Button label="Move me!" width="100%" height="100%" />
@@ -74,7 +74,7 @@
 				</oh:ObjectHandles>
 			</mx:Canvas>			
 			
-			<mx:Canvas label="Anchor Constraints" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+			<mx:Canvas label="Anchor" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300" text="An anchor causes the component to always cross a coordinate.  There are lines drawn below to show the anchors, but no visual que is neccessary." />
 
 				<mx:VRule x="300" height="400" y="65"/>

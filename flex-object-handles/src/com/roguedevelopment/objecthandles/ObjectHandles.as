@@ -195,7 +195,10 @@ package com.roguedevelopment.objecthandles
 			addEventListener( MouseEvent.MOUSE_OVER, onMouseOver );			
 			addEventListener( MouseEvent.MOUSE_OUT, onMouseOut );
 			
-			parent.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
+			if(parent != null )
+			{
+				parent.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
+			}
 			
 			SelectionManager.instance.addSelectable(this);
 		}
@@ -212,6 +215,7 @@ package com.roguedevelopment.objecthandles
 		protected function setMouseCursor(x:Number, y:Number): void
 		{
 			if( mouseCursors == null ) {return;}
+			if( parent == null ) {return;}
 			var c:MouseCursorDetails;
 			for each (var handle:Handle in handles )
 			{
@@ -368,6 +372,12 @@ package com.roguedevelopment.objecthandles
 				setMouseCursor( event.stageX, event.stageY );
 				return;
 			}
+
+			if(parent == null )
+			{
+				return;
+			}
+
 			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
 			
 			var desiredPos:Point = new Point();
