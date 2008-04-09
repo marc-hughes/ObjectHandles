@@ -82,6 +82,17 @@ package com.roguedevelopment.objecthandles
 			}
 		}
 		
+		/**
+		 * Returns true if this handle represents a handle in a corner.
+		 **/
+		public function isCorner() : Boolean
+		{
+			 return 2 == (  ( resizeUp ? 1 : 0 ) +
+					 		( resizeDown ? 1 : 0 ) +
+							( resizeLeft ? 1 : 0 ) +
+							( resizeRight ? 1 : 0 ) ); // Corners can resize in exactly 2 directions.
+		} 
+		
 		public function getCursorName() : String
 		{
 			if( !resizeDown && resizeLeft && !resizeRight && resizeUp )

@@ -85,7 +85,7 @@
 		 * Is the user allowed to rotate the component?
 		 **/
 		[Inspectable(defaultValue=true)]		
-        public var allowRotate:Boolean = true;
+        public var allowRotate:Boolean = false;
 
        /**
         * When rotating, should the component be rotated by centerpoint?
@@ -132,13 +132,17 @@
         public var rotateHandleImage:Class = null;
 
         
-        /**
-        * When resizing, should the component maintain aspect ratio?
+		/**
+        * When resizing, should the component always maintain aspect ratio?
         **/
-		//[Inspectable(defaultValue=true)]		
-        //public var maintainAspectRatio:Boolean = true;
-        // Please use the FixedRatioObjectHandles subclass if you wish to have aspect ratio support.
+		[Inspectable(defaultValue=false)]		
+		public var alwaysMaintainAspectRatio:Boolean = false;
         
+        /**
+        * When resizing, should the component maintain aspect ratio when a corner is dragged?
+        **/
+        [Inspectable(defaultValue=false)]
+		public var cornerMaintainAspectRatio:Boolean = false;        
         
         /** 
         * Is the component allowed to be moved vertically?
@@ -173,6 +177,7 @@
         public var yAnchor:Number = -1;
         
         protected var originalDepth:int;
+        ﻿protected var aspectRatio:Number = 0;
         
         /**
         * Static method so we only have a single cursor object in memory.
@@ -198,6 +203,8 @@
 		protected var isResizingLeft:Boolean = false;
 		protected var isResizingUp:Boolean = false;		
 		protected var isMoving:Boolean = false;
+		
+		﻿protected var isCorner:Boolean = false;
 		
 		protected var localClickPoint:Point = new Point();
 		protected var localClickRotation:Number = 0;
@@ -228,7 +235,10 @@
 		
 		protected function init(event:FlexEvent) : void
 		{
-			clipContent = resizeHandleImage == null;			
+			if (clipContent) {
+				clipContent = resizeHandleImage == null;			
+			}			
+						
 			
 			handles = createHandles();
 			
@@ -279,8 +289,8 @@
 					if( c != currentCursor )
 					{
 						currentCursor = c;
-						CursorManager.removeCursor(currentCursorId);
-						currentCursorId = CursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
+						cursorManager.removeCursor(currentCursorId);
+						currentCursorId = cursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
 					}					
 					return;
 				}
@@ -292,27 +302,27 @@
 				if( currentCursor != c )
 				{
 					currentCursor = c;
-					CursorManager.removeCursor(currentCursorId);
-					currentCursorId = CursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
+					cursorManager.removeCursor(currentCursorId);
+					currentCursorId = cursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
 				}
 				return;
 			}
 			
 			currentCursor = null;
-			CursorManager.removeCursor(currentCursorId);
+			cursorManager.removeCursor(currentCursorId);
 		}
 		protected function onMouseOut(event:MouseEvent) : void
 		{
 			if( ! event.buttonDown )
 			{
 				currentCursor = null;
-				CursorManager.removeCursor(currentCursorId);
+				cursorManager.removeCursor(currentCursorId);
 			}
 		}
 		
 		protected function onMouseUp(event:MouseEvent) : void
 		{
-			stage.removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
+			
 			
 			if(wasRotated )
 			{
@@ -340,12 +350,12 @@
 			wasResized = false;
 			wasRotated = false;
 			
-			
+			if( stage ) stage.removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
 			
 			switchToLocalMouseListener();
 			
-			setMouseCursor( stage.mouseX, stage.mouseX );
-			//setMouseCursor( event.stageX, event.stageY );
+			//setMouseCursor( stage.mouseX, stage.mouseX );
+			setMouseCursor( event.stageX, event.stageY );
 			resetZOrder();
 		}
 		
@@ -421,6 +431,14 @@
 		
 		protected function onMouseDown(event:MouseEvent) : void
 		{
+			﻿if( height == 0 )
+			{
+				aspectRatio = 999; // You probably want to set a minimum size to prevent this.			  	
+			}
+			else
+			{
+				aspectRatio = width / height;
+			}
 			
 			    //Only consider pixel exact mouse hits
                        if(pixelExactClick)
@@ -447,7 +465,9 @@
                                                for each(var h:DisplayObject in selectables){
 
                                                        // Don't check for this instance
-                                                       if(h != this){
+                                                       if(﻿(h is DisplayObject) && (h != this) ){
+                                                       	
+                                                       			﻿if( (h.width <= 0) || (h.height <= 0) ) { continue; }
 
                                                                var selectableCopyData:BitmapData = new BitmapData(h.width, h.height, true, 0x00000000);
                                                                selectableCopyData.draw(h);
@@ -470,8 +490,10 @@
                                                                        e.localY = nPoint.y;
 
                                                                        // Dispatch the event
-                                                                       (h as ObjectHandles).dispatchEvent(e);
-
+                                                                       ﻿if( h is ObjectHandles )
+                                                                       {
+                                                                       	 (h as ObjectHandles).dispatchEvent(e);
+                                                                       }
                                                                        // Don't process further
                                                                        return;
                                                                }
@@ -517,7 +539,8 @@
 			{
 				
 					if( handle.hitTestPoint(event.stageX, event.stageY) )
-					{						
+					{				
+						﻿isCorner = handle.isCorner();					
 						isResizingDown = handle.resizeDown;
 						isResizingLeft = handle.resizeLeft;
 						isResizingRight = handle.resizeRight;					
@@ -632,7 +655,11 @@
 				wasMoved = true;			
 			}
 			
-			
+			if( (wasResized && alwaysMaintainAspectRatio ) ||
+				(wasResized && ( isCorner && cornerMaintainAspectRatio) ) )
+			{				
+				desiredSize.x = aspectRatio * desiredSize.y;
+			}
 			
 			if( wasMoved || wasResized )
 			{
@@ -712,6 +739,17 @@
 			
 			for each (var option:Object in handleOptions)
 			{
+				
+﻿				var isCorner:Boolean = 2 == (      ( option.resizeUp ? 1 : 0 ) +
+								   ( option.resizeDown ? 1 : 0 ) +
+								   ( option.resizeLeft ? 1 : 0 ) +
+								   ( option.resizeRight ? 1 : 0 ) ); // Corners can resize in 2 directions.
+				
+				if( (! isCorner ) && (alwaysMaintainAspectRatio) )
+				{					
+					continue; // We don't show handles that you can't use.
+				}
+				
 				if( (! allowRotate ) && option.rotate )				
 				{
 					continue;
