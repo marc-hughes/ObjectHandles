@@ -53,23 +53,35 @@ package com.roguedevelopment.objecthandles
 		{
 			if( obj == currentlySelected ) { return; }
 			
+			if( currentlySelected != null )
+			{ 
+				currentlySelected.deselect(); 
+			}
+			
 			currentlySelected = obj;
 			
-			for each (var s:Selectable in _items)
+			if( obj != null )
 			{
-				if( s == obj )
-				{
-					s.select();
-				}
-				else
-				{
-					s.deselect();					
-				}
+				currentlySelected.select();
 			}
+			
+
 		}
+		
+		public function getItems():Array
+		{
+          return _items;
+        }
+        
 		public function addSelectable(obj:Selectable) : void
 		{
 			_items.push(obj);
+		}
+		
+		public function removeSelectable( obj : Selectable ) : void
+		{
+			_items.splice(	_items.indexOf( obj ), 1 );
+			
 		}
 	}
 }
