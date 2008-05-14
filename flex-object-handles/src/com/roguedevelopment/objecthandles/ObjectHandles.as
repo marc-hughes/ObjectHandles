@@ -37,20 +37,23 @@
  * 
  **/
  
+ 
  package com.roguedevelopment.objecthandles
  {
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.events.FocusEvent;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.ui.Keyboard;
 	
 	import mx.containers.Canvas;
 	import mx.core.ScrollPolicy;
 	import mx.core.UIComponent;
 	import mx.effects.Rotate;
 	import mx.events.FlexEvent;
-	import mx.managers.CursorManager;
 
 	/** 
 	 * The main component in the ObjectHandle package that provides most of the functionality.
@@ -217,11 +220,16 @@
 		protected var currentCursor:MouseCursorDetails = null;
 		protected var currentCursorId:int = -1;
 		
+		protected var _allowKeyboardManipulation:Boolean = true;
+		public function set allowKeyboardManipulation(val:Boolean) : void { _allowKeyboardManipulation = val; setupKeyboardListeners(); }
+		public function get allowKeyboardManipulation() : Boolean { return _allowKeyboardManipulation ; }
+		
 		protected var rotateEffect:Rotate;
 		
 		public function ObjectHandles()
 		{
 			super();
+			focusEnabled = true;
 			
 			creationPolicy = "all";
 			mouseChildren = false;
@@ -230,6 +238,10 @@
 			addEventListener( FlexEvent.CREATION_COMPLETE, init );						
 			horizontalScrollPolicy = ScrollPolicy.OFF;
 			verticalScrollPolicy = ScrollPolicy.OFF;
+			
+			
+			//focusRect = true;
+			
 			
 		}
 		
@@ -254,7 +266,157 @@
 			addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
 			
 			SelectionManager.instance.addSelectable(this);
+			
+			setupKeyboardListeners();
 		}
+		
+		protected function setupKeyboardListeners() : void
+		{
+			if( _allowKeyboardManipulation )
+			{
+				addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown );
+				addEventListener(FocusEvent.KEY_FOCUS_CHANGE, onKeyFocus );
+			}
+			else
+			{
+				removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown );
+				removeEventListener(FocusEvent.KEY_FOCUS_CHANGE, onKeyFocus );
+			}
+		}
+		
+		protected function onKeyFocus(event:FocusEvent) : void
+		{
+			
+			if( parent is ObjectHandlesCanvas )
+			{
+				var ohc:ObjectHandlesCanvas = parent as ObjectHandlesCanvas;
+				if( event.shiftKey )
+				{
+					if( ohc.retreatFocus(this) )
+					{
+						event.preventDefault();
+					}
+				}
+				else
+				{
+					if( ohc.advanceFocus(this) )
+					{
+						event.preventDefault();
+					}
+				}
+				
+			}
+			
+			
+		}
+		
+		protected function onKeyDown(event:KeyboardEvent ) : void
+		{
+			switch( event.keyCode )
+			{
+				case Keyboard.UP:   handleUpPress(event.shiftKey); break;
+				case Keyboard.DOWN: handleDownPress(event.shiftKey); break;
+				case Keyboard.LEFT: handleLeftPress(event.shiftKey); break;
+				case Keyboard.RIGHT:handleRightPress(event.shiftKey); break;
+				//case Keyboard.TAB:  handleTabPress(event); break;
+				case Keyboard.SPACE:handleSpace(); break;
+				
+			}
+		}
+		
+		protected function handleSpace() : void
+		{
+			SelectionManager.instance.setSelected( this );
+		}
+		
+		protected function handleUpPress( shiftKeyDown:Boolean ) : void 
+		{
+			var size:Point = new Point(width,height);
+			var pos:Point = new Point(x, y );
+			
+			if( shiftKeyDown )
+			{
+				size.y --;				
+			}
+			else
+			{
+				pos.y--;
+			}
+			applyConstraints( pos , size);
+			y = pos.y;
+			x = pos.x;
+			width = size.x;
+			height = size.y;
+			dispatchMoved();
+			dispatchResized();
+		}
+		protected function handleDownPress( shiftKeyDown:Boolean ) : void 
+		{
+			var size:Point = new Point(width,height);
+			var pos:Point = new Point(x, y );
+			
+			if( shiftKeyDown )
+			{
+				size.y ++;				
+			}
+			else
+			{
+				pos.y++;
+			}
+			applyConstraints( pos , size);
+			y = pos.y;
+			x = pos.x;
+			width = size.x;
+			height = size.y;	
+			dispatchMoved();
+			dispatchResized();
+				
+		}
+		protected function handleLeftPress( shiftKeyDown:Boolean ) : void 
+		{
+			var size:Point = new Point(width,height);
+			var pos:Point = new Point(x, y );
+			
+			if( shiftKeyDown )
+			{
+				size.x --;				
+			}
+			else
+			{
+				pos.x --;
+			}
+			applyConstraints( pos , size);
+			y = pos.y;
+			x = pos.x;
+			width = size.x;
+			height = size.y;		
+			dispatchMoved();
+			dispatchResized();
+				
+		}
+		protected function handleRightPress( shiftKeyDown:Boolean ) : void 
+		{
+			var size:Point = new Point(width,height);
+			var pos:Point = new Point(x, y );
+			
+			if( shiftKeyDown )
+			{
+				size.x ++;				
+			}
+			else
+			{
+				pos.x++;
+			}
+			applyConstraints( pos , size);
+			y = pos.y;
+			x = pos.x;
+			width = size.x;
+			height = size.y;	
+			dispatchMoved();
+			dispatchResized();
+					
+		}
+		
 		
 		protected function switchToLocalMouseListener() : void
 		{
@@ -557,6 +719,8 @@
 			isResizingUp = false;
 			isResizingLeft = false;
 			isMoving = true;
+			
+			setFocus();
 			
 		}
 		
@@ -922,7 +1086,8 @@
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_SELECTED) );		
 		}
 		public function deselect() : void
-		{
+		{			
+			drawFocus(false);
 			showHandles(false);
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_DESELECTED) );		
 		}
@@ -930,6 +1095,13 @@
 		protected function getMouseAngle():Number{
 			return Math.atan2(parent.mouseY - y, parent.mouseX - x) * 180/Math.PI; 
 		}
+		
+		public function setKeyboardFocus() : void
+		{
+			drawFocus(true);
+			setFocus();
+		}
+				
 
 	}
 	
