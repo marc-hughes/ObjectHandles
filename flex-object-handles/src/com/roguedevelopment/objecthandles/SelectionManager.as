@@ -75,12 +75,17 @@ package com.roguedevelopment.objecthandles
         
 		public function addSelectable(obj:Selectable) : void
 		{
+			var ind:int = _items.indexOf( obj );
+			if( ind != -1 ) { return; }
+			
 			_items.push(obj);
 		}
 		
 		public function removeSelectable( obj : Selectable ) : void
 		{
-			_items.splice(	_items.indexOf( obj ), 1 );
+			var ind:int = _items.indexOf( obj );
+			if( ind == -1 ) { return; }
+			_items.splice( ind	, 1 );
 			
 		}
 	}

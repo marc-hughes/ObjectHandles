@@ -1,4 +1,39 @@
-/**
+
+
+/*
+
+Usage of this class is being deprecated.  We're just always going to use an ImageHandle so there's
+a single set of code to maintain.  The default "image" looks nearly identical to what this handle
+used to draw.
+
+*/
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ /**
  *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.xml
  *
  *  Copyright (c) 2007 Marc Hughes

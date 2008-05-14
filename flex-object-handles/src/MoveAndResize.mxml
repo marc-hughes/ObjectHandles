@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*" creationComplete="init()" xmlns:popupbar="com.roguedevelopment.popupbar.*">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" xmlns:oh="com.roguedevelopment.objecthandles.*" creationComplete="init()" xmlns:popupbar="com.roguedevelopment.popupbar.*" xmlns:sample="com.roguedevelopment.objecthandles.sample.*">
 	<mx:Script>
 		<![CDATA[
-			import com.roguedevelopment.objecthandles.ObjectHandlesMouseCursors;		
+			import mx.controls.Image;
+			import com.roguedevelopment.objecthandles.ObjectHandleEvent;
+			import com.roguedevelopment.objecthandles.ObjectHandlesMouseCursors;
+			
+			[Embed(source="resize_handle.png")]
+			protected var resize_handle:Class;
+			[Embed(source="rotate_handle.png")]
+			protected var rotate_handle:Class;
+					
 			protected function init() : void
 			{
+				var oh:ObjectHandles = new ObjectHandles();
+				oh.height = 50;
+				oh.width = 50;		
+				oh.resizeHandleImage = resize_handle;
+									
+				var image:Image = new Image();
+				image.source = "snowflake.png";
+				oh.addChild(image);
+				oh.allowRotate = false;
+				image.percentHeight = 100;
+				image.percentWidth = 100;
+				image.maintainAspectRatio = false;
+				
+				genericExamples.addChild(oh);
 			}
 		]]>
 	</mx:Script>
@@ -12,37 +34,38 @@
 
 		<mx:LinkBar dataProvider="{exampleStack}" width="100%"  backgroundColor="#FFFFFF"/>
 
-		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">			
-			<mx:Canvas label="Generic" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
+		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">
+	
+			<mx:Canvas id="genericExamples" label="Generic" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Normal functionality with no constraints set." />
-				<oh:ObjectHandles allowRotate="false" x="10" y="20" width="307" height="30" minHeight="30" minWidth="100" >
-					<mx:Button label="Move Me" width="100%" height="100%" />
+				
+				<sample:CustomComponent x="120" y="120" width="20" height="20" />
+				
+				<oh:ObjectHandles id="imageHolder" x="75" width="50" height="40" resizeHandleImage="{resize_handle}" rotateHandleImage="{rotate_handle}"/>
+				
+				<oh:ObjectHandles id="oh1" resizeHandleImage="{resize_handle}" rotateHandleImage="{rotate_handle}" allowRotate="false" x="10" y="20" width="307" height="130" minHeight="30" minWidth="200" >
+					<mx:Button label="Graphical Handles" width="100%" height="100%" />
 				</oh:ObjectHandles>
-				<oh:ObjectHandles mouseCursors="{null}" allowRotate="false" x="10" y="60" width="307" height="30" minHeight="30" minWidth="100" >
-					<mx:Button label="Move Me (No Mouse Cursors)" width="100%" height="100%"  x="0"/>
+				<oh:ObjectHandles mouseCursors="{null}" allowRotate="false" x="10" y="160" width="307" height="30" minHeight="30" minWidth="130" >
+					<mx:Button label="No Mouse Cursors" width="100%" height="100%"  x="0"/>
 				</oh:ObjectHandles>
 
-				<oh:ObjectHandles mouseCursors="{new ObjectHandlesMouseCursors()}" allowRotate="false" x="10" y="90" width="307" height="30" minHeight="30" minWidth="100" >
-					<mx:Button label="Move Me (Alternative Cursors)" width="100%" height="100%"  x="0"/>
+				<oh:ObjectHandles mouseCursors="{new ObjectHandlesMouseCursors()}" allowRotate="false" x="10" y="195" width="307" height="30" minHeight="30" minWidth="130" >
+					<mx:Button label="Alternative Cursors" width="100%" height="100%"  x="0"/>
 				</oh:ObjectHandles>
+
+				<oh:FixedRatioObjectHandles mouseCursors="{new ObjectHandlesMouseCursors()}" allowRotate="false" x="10" y="375" width="307" height="50" minHeight="30" minWidth="130" >
+					<mx:Button label="Fixed Aspect Ratio" width="100%" height="100%"  x="0"/>
+				</oh:FixedRatioObjectHandles>
 				
-				<oh:ObjectHandles allowRotate="false" x="10" y="158" width="107" height="108" minHeight="30" minWidth="30">
+				<oh:ObjectHandles allowRotate="false" x="10" y="258" width="107" height="108" minHeight="30" minWidth="130">
 					<mx:VBox borderStyle="none"  top="0" left="0" right="0" bottom="0">
-						<mx:Button width="100%" height="50%" />
-						<mx:Button width="100%" height="50%" />
+						<mx:Button label="Multiple" width="100%" height="50%" />
+						<mx:Button label="Components" width="100%" height="50%" />
 					</mx:VBox>
 				</oh:ObjectHandles>
 			</mx:Canvas>
 			
-			<mx:Canvas label="Rotating" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
-				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Rotation and resizing is not 100% yet, but you can see some of it here.  Note that text doesn't appear once an object is rotated unless you embed the font, this is a general Flex limitation." />
-				<oh:ObjectHandles  x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowVResize="false" >
-					<mx:Button label="Rotate, no resize" width="100%" height="100%" />
-				</oh:ObjectHandles>
-				<oh:ObjectHandles x="10" y="80" width="307" height="30" minHeight="30" minWidth="250" >
-					<mx:Button label="Rotate with resize" width="100%" height="100%" />
-				</oh:ObjectHandles>
-			</mx:Canvas>		
 			
 			<mx:Canvas label="Horizontal" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="The top component has a horizontal movement constraint, and the bottom one has a horizontal resizing constraint." />
@@ -94,7 +117,16 @@
 				
 			</mx:Canvas>	
 			
-			
+			<mx:Canvas label="Rotating" width="100%" height="100%" backgroundColor="0xffffff" backgroundAlpha="1" >
+				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Rotation and resizing is not 100% yet, but you can see some of it here.  Note that text doesn't appear once an object is rotated unless you embed the font, this is a general Flex limitation." />
+				<oh:ObjectHandles  x="10" y="30" width="307" height="30" minHeight="30" minWidth="250" allowVResize="false" >
+					<mx:Button label="Rotate, no resize" width="100%" height="100%" />
+				</oh:ObjectHandles>
+				<oh:ObjectHandles x="10" y="80" width="307" height="30" minHeight="30" minWidth="250" >
+					<mx:Button label="Rotate with resize" width="100%" height="100%" />
+				</oh:ObjectHandles>
+			</mx:Canvas>		
+
 					
 		</mx:ViewStack>
 		<mx:Script>

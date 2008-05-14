@@ -10,6 +10,8 @@ package com.roguedevelopment.objecthandles
 	 * 
 	 * You don't have to use this to use ObjectHandles, but then you won't get keyboard nav.
 	 * 
+	 * TODO: visible=false object handles can still be tabbed to.
+	 * 
 	 **/
 	public class ObjectHandlesCanvas extends Canvas implements IFocusManagerComplexComponent
 	{
@@ -82,7 +84,7 @@ package com.roguedevelopment.objecthandles
 		
 		protected function sortChildren() : void
 		{
-			﻿var i:int = 0;
+			var i:int = 0;
 			var sortedChildren:Array = [];
 			for( i = 0 ; i < numChildren ; i++)
 			{
@@ -108,7 +110,7 @@ package com.roguedevelopment.objecthandles
 			return child;
 		}
 		
-﻿		protected function comparator( obj1:Object , obj2:Object ) : Number
+		protected function comparator( obj1:Object , obj2:Object ) : Number
 		{
 			var so1:Number = obj1 is ObjectHandles ? 
 										(obj1 as ObjectHandles).sortOrder :

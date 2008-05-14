@@ -42,6 +42,7 @@
  {
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.events.Event;
 	import flash.events.FocusEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -125,14 +126,16 @@
         * If you leave this null it will be programatically drawn.
         **/
         [Inspectable]
-        public var resizeHandleImage:Class = null;
+        [Embed(source="resizeHandle.png")]
+        public var resizeHandleImage:Class ;
         
         /**
         * An embedded image to use for the rotate handles.
         * If you leave this null it will be programatically drawn.
         **/
         [Inspectable]
-        public var rotateHandleImage:Class = null;
+        [Embed(source="rotateHandle.png")]
+        public var rotateHandleImage:Class ;
 
         
 		/**
@@ -235,21 +238,31 @@
 			mouseChildren = false;
 			mouseEnabled = true;
 			buttonMode = false;
-			addEventListener( FlexEvent.CREATION_COMPLETE, init );						
+			addEventListener( FlexEvent.CREATION_COMPLETE, init );
+			addEventListener( Event.ADDED_TO_STAGE, addedToStage );
+			addEventListener( Event.REMOVED_FROM_STAGE, removedFromStage );						
 			horizontalScrollPolicy = ScrollPolicy.OFF;
-			verticalScrollPolicy = ScrollPolicy.OFF;
-			
-			
-			//focusRect = true;
-			
-			
+			verticalScrollPolicy = ScrollPolicy.OFF;			
+			clipContent = false;
 		}
+		
+		protected function addedToStage(e:Event) : void
+		{
+			SelectionManager.instance.addSelectable( this );
+		}
+		
+		protected function removedFromStage(e:Event) : void
+		{
+			SelectionManager.instance.removeSelectable(this);
+		}
+
 		
 		protected function init(event:FlexEvent) : void
 		{
-			if (clipContent) {
-				clipContent = resizeHandleImage == null;			
-			}			
+			
+//			if (clipContent) {
+//				clipContent = resizeHandleImage == null;			
+//			}			
 						
 			
 			handles = createHandles();
@@ -452,7 +465,8 @@
 					{
 						currentCursor = c;
 						cursorManager.removeCursor(currentCursorId);
-						currentCursorId = cursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );						
+						currentCursorId = cursorManager.setCursor( c.cursor,2, c.offset.x, c.offset.y	 );
+												
 					}					
 					return;
 				}
@@ -484,7 +498,6 @@
 		
 		protected function onMouseUp(event:MouseEvent) : void
 		{
-			
 			
 			if(wasRotated )
 			{
@@ -593,6 +606,7 @@
 		
 		protected function onMouseDown(event:MouseEvent) : void
 		{
+
 			﻿if( height == 0 )
 			{
 				aspectRatio = 999; // You probably want to set a minimum size to prevent this.			  	
@@ -828,10 +842,7 @@
 			if( wasMoved || wasResized )
 			{
 				applyConstraints(desiredPos,desiredSize);
-				x = desiredPos.x;
-				y = desiredPos.y
-				width = desiredSize.x;
-				height = desiredSize.y;
+				callLater( resizeMove, [desiredPos, desiredSize] );
 			}
 			
 			if(wasRotated){			
@@ -854,12 +865,35 @@
 			}
 			
 			
-			if( wasMoved ) {  dispatchMoving() ; }
+			if( wasMoved ) {    dispatchMoving() ; }
 			if( wasResized ) {  dispatchResizing() ; }
-			if( wasRotated ) {dispatchRotating(); }
+			if( wasRotated ) {  dispatchRotating(); }
 			
 			event.updateAfterEvent();
 			
+		}
+
+		protected function resizeMove( desiredPos:Point, desiredSize:Point) : void
+		{			
+			width = desiredSize.x;
+			height = desiredSize.y;			
+			x = desiredPos.x;
+			y = desiredPos.y
+			validateNow();	
+			
+			trace(x + " " + width + " " + (x+width)) ;
+		}
+		
+		override public function set width(value:Number):void
+		{
+			trace("W" + value);
+			super.width = value;			
+		}
+		
+		override public function set x(value:Number):void
+		{
+			trace("X" + value);
+			super.x = value;
 		}
 
 		protected function showHandles( visible:Boolean ) : void
@@ -1102,6 +1136,8 @@
 			setFocus();
 		}
 				
+
+
 
 	}
 	
