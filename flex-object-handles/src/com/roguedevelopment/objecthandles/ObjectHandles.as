@@ -807,20 +807,177 @@
 				desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
 				wasResized = true;
 			}
-			if( isResizingLeft && event.buttonDown && rotation == 0)
+			
+			/* removed by greg: &&  rotation = 0 */
+			if( isResizingLeft && !isResizingUp && event.buttonDown)
 			{	
-				desiredPos.x = dest.x - localClickPoint.x;
+				/*desiredPos.x = dest.x - localClickPoint.x;
 				desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);
 				wasResized = true;
-				wasMoved = true;
+				wasResizedLeft = true;
+				wasMoved = true;*/
+				
+				
+				//trace("original matrix", this.transform.matrix);
+
+			    // Create a translation matrice we will use it to find the
+			    // new coordinates of A (topleft) point.
+
+			    var translate_matrixL:Matrix = new Matrix();
+			    // get the North cursor current Y position
+			    // We use getRotatedRectPoint to get the rotated cooridates of the North
+			    // handle at position width / 2
+
+			    var rL:Number = this.rotation * (Math.PI/180);
+			    var handleInitPosL:Point = getRotatedRectPoint(rL, new Point(0,this.height/2));
+			    handleInitPosL.x += this.x
+			    handleInitPosL.y += this.y      
+
+			    // get the new North handle position
+			    var handleNewPosL:Point = new Point();
+			    handleNewPosL.x = handleInitPosL.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+
+			    // diff betwee both X positions
+			    var handlePosXDeltaL:Number = handleNewPosL.x - handleInitPosL.x;
+
+			    // No we translate by the difference on X 
+			    translate_matrixL.translate(handlePosXDeltaL, 0);
+			    // and dont forget to aply the current component transformation
+			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
+			    translate_matrixL.concat(this.transform.matrix);
+
+			    // The new A position
+			    var translated_pointL:Point = translate_matrixL.transformPoint(new Point(0, 0));
+			    desiredPos.x =  translated_pointL.x;
+			    desiredPos.y =  translated_pointL.y;
+
+			    //trace("old height " ,this.height);
+
+			    // new size since we move A and resize widht at the same time
+			    desiredSize.x = this.width - handlePosXDeltaL;
+
+			    // Guardian
+			    // trace("new height ", desiredSize.y);
+			    if (desiredSize.x < 0) {
+			        wasMoved = false;
+			        wasResized = false;
+			    }
+			    else {
+			        wasMoved = true;
+			        wasResized = true;
+			    }
+				
 			}
-			if( isResizingUp && event.buttonDown  && rotation == 0)
+			/* removed by greg: &&  rotation = 0 */
+			if( isResizingUp && !isResizingLeft && event.buttonDown)
 			{	
-				desiredPos.y = dest.y - localClickPoint.y;
-				desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);												
-				wasResized = true;
-				wasMoved = true;
+				//trace("original matrix", this.transform.matrix);
+
+			    // Create a translation matrice we will use it to find the
+			    // new coordinates of A (topleft) point.
+
+			    var translate_matrixU:Matrix = new Matrix();
+			    // get the North cursor current Y position
+			    // We use getRotatedRectPoint to get the rotated cooridates of the North
+			    // handle at position width / 2
+
+			    var rU:Number = this.rotation * (Math.PI/180);
+			    var handleInitPosU:Point = getRotatedRectPoint(rU, new Point(this.width/2,0));
+			    handleInitPosU.x += this.x
+			    handleInitPosU.y += this.y      
+
+			    // get the new North handle position
+			    var handleNewPosU:Point = new Point();
+			    handleNewPosU.y = handleInitPosU.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
+
+			    // diff betwee both Y positions
+			    var handlePosYDeltaU:Number = handleNewPosU.y - handleInitPosU.y;
+
+			    // No we translate by the difference on Y 
+			    translate_matrixU.translate(0, handlePosYDeltaU);
+			    // and dont forget to aply the current component transformation
+			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
+			    translate_matrixU.concat(this.transform.matrix);
+
+			    // The new A position
+			    var translated_pointU:Point = translate_matrixU.transformPoint(new Point(0, 0));
+			    desiredPos.x =  translated_pointU.x;
+			    desiredPos.y =  translated_pointU.y;
+
+			    //trace("old height " ,this.height);
+
+			    // new size since we move A and resize widht at the same time
+			    desiredSize.y = this.height - handlePosYDeltaU;
+
+			    // Guardian
+			    // trace("new height ", desiredSize.y);
+			    if (desiredSize.y < 0) {
+			        wasMoved = false;
+			        wasResized = false;
+			    }
+			    else {
+			        wasMoved = true;
+			        wasResized = true;
+			    }
 			}
+			if( isResizingUp && isResizingLeft && event.buttonDown)
+			{	
+				trace("original matrix", this.transform.matrix);
+
+			    // Create a translation matrice we will use it to find the
+			    // new coordinates of A (topleft) point.
+
+			    var translate_matrix:Matrix = new Matrix();
+
+			    var r:Number = this.rotation * (Math.PI/180);
+			    var handleInitPos:Point = getRotatedRectPoint(r, new Point(0,0));
+			    handleInitPos.x += this.x
+			    handleInitPos.y += this.y      
+
+			    // get the new North handle position
+			    var handleNewPos:Point = new Point();
+			    handleNewPos.y = handleInitPos.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
+			    handleNewPos.x = handleInitPos.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+
+			    // diff betwee both Y positions
+			    var handlePosYDelta:Number = handleNewPos.y - handleInitPos.y;
+			    var handlePosXDelta:Number = handleNewPos.x - handleInitPos.x;
+				
+			//	trace("y delta " + handlePosYDelta )
+			//	trace("x delta " + handlePosXDelta )
+								
+			    // No we translate by the difference on Y and X
+			    translate_matrix.translate(handlePosXDelta, handlePosYDelta);
+			
+			    // and dont forget to aply the current component transformation
+			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
+			    translate_matrix.concat(this.transform.matrix);
+
+			    // The new A position
+			    var translated_point:Point = translate_matrix.transformPoint(new Point(0, 0));
+			    desiredPos.x =  translated_point.x;
+			    desiredPos.y =  translated_point.y;
+
+			  //  trace("old height " ,this.height);
+			//	trace("old width " ,this.width);
+
+			    // new size since we move A and resize widht at the same time
+			    desiredSize.y = this.height - handlePosYDelta;
+				desiredSize.x = this.width - handlePosXDelta;
+
+			    // Guardian
+			 //   trace("new height ", desiredSize.y);
+			//	trace("new width ", desiredSize.x);
+			    if (desiredSize.y < 0 || desiredSize.x < 0) {
+			        wasMoved = false;
+			        wasResized = false;
+			    }
+			    else {
+			        wasMoved = true;
+			        wasResized = true;
+			    }
+			}
+
 						 
 			
 			if( isMoving && event.buttonDown)
@@ -1136,6 +1293,20 @@
 			setFocus();
 		}
 				
+		/* added by greg */
+		// return the rotated point coordinates
+		// help from http://board.flashkit.com/board/showthread.php?t=775357
+		
+		public function getRotatedRectPoint( angle:Number, point:Point, rotationPoint:Point = null):Point {
+				    var ix:Number = (rotationPoint) ? rotationPoint.x : 0;
+				    var iy:Number = (rotationPoint) ? rotationPoint.y : 0;
+				    
+				    var m:Matrix = new Matrix( 1,0,0,1, point.x - ix, point.y - iy);
+				    
+				    m.rotate(angle);
+				    return new Point( m.tx + ix, m.ty + iy);
+				}
+		 /* end added */
 
 
 

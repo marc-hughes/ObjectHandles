@@ -34,7 +34,12 @@
 
 		<mx:LinkBar dataProvider="{exampleStack}" width="100%"  backgroundColor="#FFFFFF"/>
 
-		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all">
+		<mx:ViewStack id="exampleStack" width="100%" height="100%" creationPolicy="all" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Canvas horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<oh:ObjectHandles horizontalScrollPolicy="off" verticalScrollPolicy="off" id="oh11" resizeHandleImage="{resize_handle}" rotateHandleImage="{rotate_handle}" allowRotate="true" x="10" y="20" width="307" height="130" minHeight="30" minWidth="200" >
+					<mx:Button label="Graphical Handles" width="100%" height="100%"  />
+				</oh:ObjectHandles>
+			</mx:Canvas>
 	
 			<mx:Canvas id="genericExamples" label="Generic" backgroundColor="0xffffff" backgroundAlpha="1" width="100%" height="100%" >
 				<mx:TextArea editable="false" borderStyle="none" width="300" height="300"  text="Normal functionality with no constraints set." />

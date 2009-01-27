@@ -36,7 +36,7 @@ used to draw.
  /**
  *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.xml
  *
- *  Copyright (c) 2007 Marc Hughes
+ *  Copyright (c) 2008 Marc Hughes
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
