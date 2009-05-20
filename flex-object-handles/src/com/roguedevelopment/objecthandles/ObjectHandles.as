@@ -27,6 +27,7 @@
  *    Thomas Jakobi
  * 	  Mario Ernst
  *    Aaron Winkler
+ *    Gregory Tappero
  * 
  * -------------------------------------------------------------------------------------------
  * 
@@ -184,6 +185,12 @@
         
         protected var originalDepth:int;
         ﻿protected var aspectRatio:Number = 0;
+
+		protected var isLocked:Boolean = true;
+        protected var isBounded:Boolean = true;
+        
+        protected var maxMoveY:Number = 9999;
+        protected var maxMoveX:Number = 9999;
         
         /**
         * Static method so we only have a single cursor object in memory.
@@ -542,11 +549,11 @@
 				try
 				{
 					originalDepth = parent.getChildIndex(this);
-					trace("Original: " + originalDepth );
+//					trace("Original: " + originalDepth );
 					if( originalDepth != parent.numChildren )
 					{
 						parent.setChildIndex( this, parent.numChildren -1 );
-						trace("numchildren: " + parent.numChildren + " " + parent.getChildIndex(this));
+//						trace("numchildren: " + parent.numChildren + " " + parent.getChildIndex(this));
 					}
 				}
 				catch(e:Error)
@@ -738,318 +745,511 @@
 			
 		}
 		
-		protected function onMouseMove(event:MouseEvent) : void
-		{
-			if( ! visible ) { return; }
-			
-			if( ! event.buttonDown )
-			{
-				setMouseCursor( event.stageX, event.stageY );
-				return;
-			}
+		 protected function onMouseMove(event:MouseEvent) : void
+        {
+            if( ! visible ) { return; }
+            
+     
 
-			if(parent == null )
-			{
-				return;
-			}
+            if(parent == null )
+            {
+                return;
+            }
 
-			var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
-			
-			var desiredPos:Point = new Point();
-			var desiredSize:Point = new Point();
-			var desiredRotation:Number = 0;		
-		
-			
-			if( parent is Canvas)
-			{
-				var parentCanvas:Canvas = parent as Canvas;
-				dest.x += parentCanvas.horizontalScrollPosition;
-				dest.y += parentCanvas.verticalScrollPosition;
-			}
-			
-			desiredRotation = rotation;
-			desiredSize.x = width;
-			desiredSize.y = height;
-			desiredPos.x = x;
-			desiredPos.y = y;
-			
+            var dest:Point = parent.globalToLocal( new Point(event.stageX, event.stageY) );
+            
+            var desiredPos:Point = new Point();
+            var desiredSize:Point = new Point();
+            var desiredRotation:Number = 0;     
+        
+            
+            if( parent is Canvas)
+            {
+                var parentCanvas:Canvas = parent as Canvas;
+                dest.x += parentCanvas.horizontalScrollPosition;
+                dest.y += parentCanvas.verticalScrollPosition;
+            }
+            
+            desiredRotation = rotation;
+            desiredSize.x = width;
+            desiredSize.y = height;
+            desiredPos.x = x;
+            desiredPos.y = y;
+                        
+            
+            var bowAngle:Number = 0;//Math.PI / 180 * Math.abs(rotation);
+            var theMatrix:Matrix;
+            var rotatedPoint:Point;
 
-			
-			var bowAngle:Number = 0;//Math.PI / 180 * Math.abs(rotation);
-			var theMatrix:Matrix;
-			var rotatedPoint:Point;
-
-			var xAlt:Number = localClickPoint.x;
-			var yAlt:Number = localClickPoint.y;	
-			
-			var tX:Number = 0;
-			var tP:Point = new Point();
-			
-			bowAngle = Math.PI / 180 * rotation * -1;						
+            var xAlt:Number = localClickPoint.x;
+            var yAlt:Number = localClickPoint.y;
+            
+            var tX:Number = 0;
+            var tP:Point = new Point();
+            
+            bowAngle = Math.PI / 180 * rotation * -1;                       
 
 
-			theMatrix = new Matrix(Math.cos(bowAngle), - Math.sin(bowAngle), Math.sin(bowAngle), Math.cos(bowAngle));
-			rotatedPoint = theMatrix.transformPoint(new Point(xAlt, yAlt));
-			
-			if( isRotating && event.buttonDown)
-			{		
-				desiredRotation = Math.round(localClickRotation - localClickAngle + getMouseAngle());		
-				wasRotated = true;
-			}			
-			
-			if( isResizingRight && event.buttonDown)
-			{				
-				desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
-				wasResized = true;
-			}
-			if( isResizingDown && event.buttonDown)
-			{				
-				desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
-				wasResized = true;
-			}
-			
-			/* removed by greg: &&  rotation = 0 */
-			if( isResizingLeft && !isResizingUp && event.buttonDown)
-			{	
-				/*desiredPos.x = dest.x - localClickPoint.x;
-				desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);
-				wasResized = true;
-				wasResizedLeft = true;
-				wasMoved = true;*/
-				
-				
-				//trace("original matrix", this.transform.matrix);
+            theMatrix = new Matrix(Math.cos(bowAngle), - Math.sin(bowAngle), Math.sin(bowAngle), Math.cos(bowAngle));
+            rotatedPoint = theMatrix.transformPoint(new Point(xAlt, yAlt));
+            
+            if( isRotating && event.buttonDown)
+            {       
+                desiredRotation = Math.round(localClickRotation - localClickAngle + getMouseAngle());       
+                wasRotated = true;
+            }           
+            
+            
+            // RIGHT
+            if( isResizingRight && !isResizingUp && event.buttonDown)
+            {               
+                desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
+                
+                if(this.alwaysMaintainAspectRatio)
+                    desiredSize.y = desiredSize.x / aspectRatio;
+                
+        
+     
+                wasResized = true;
+            }
 
-			    // Create a translation matrice we will use it to find the
-			    // new coordinates of A (topleft) point.
 
-			    var translate_matrixL:Matrix = new Matrix();
-			    // get the North cursor current Y position
-			    // We use getRotatedRectPoint to get the rotated cooridates of the North
-			    // handle at position width / 2
+            // DOWN
+            if( isResizingDown && event.buttonDown)
+            {               
+                desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
+             
+                if(alwaysMaintainAspectRatio)
+                    desiredSize.x = desiredSize.y * aspectRatio;
+                
+              
+                wasResized = true;
+            }
 
-			    var rL:Number = this.rotation * (Math.PI/180);
-			    var handleInitPosL:Point = getRotatedRectPoint(rL, new Point(0,this.height/2));
-			    handleInitPosL.x += this.x
-			    handleInitPosL.y += this.y      
+            // BOTTOM RIGHT
+            if( isResizingDown && isResizingRight &&  event.buttonDown) {
+                if (alwaysMaintainAspectRatio) {
+                    desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
+                    desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
+                    
+                    if ((desiredSize.y - this.height) > (desiredSize.x - this.width)) {
+                        desiredSize.x = desiredSize.y * aspectRatio;  
+                    }
+                    else {
+                        desiredSize.y = desiredSize.x / aspectRatio;
+                    }
+                    wasResized = true;
+                }
+            }
+            
+            // LEFT handle
+            if( isResizingLeft && !isResizingUp && event.buttonDown)
+            {
+                // simplifies the calculation when no rotation
+                if (rotation == 0) {
+                    desiredPos.x = dest.x - localClickPoint.x;
+                    desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);                                                                                           
 
-			    // get the new North handle position
-			    var handleNewPosL:Point = new Point();
-			    handleNewPosL.x = handleInitPosL.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+                    if(alwaysMaintainAspectRatio){
+                        desiredSize.x = desiredSize.y / aspectRatio;
+                        desiredPos.x = (originalPosition.x + originalSize.x) - desiredSize.x;
+                    }
+                    
+                    wasResized = true;
+                    wasMoved = true;
+                }
+                else { 
+                    // We get translation matrice we will use it to find the
+                    // new coordinates of A (topleft) point.
+                    var translate_matrixL:Matrix = new Matrix();
+                    // get the North cursor current Y position
+                    // We use getRotatedRectPoint to get the rotated coordinates of the North
+                    // handle at position width / 2
+                    var rL:Number = this.rotation * (Math.PI/180);
+                    var handleInitPosL:Point = getRotatedRectPoint(rL, new Point(0,this.height/2));
+                    handleInitPosL.x += this.x
+                    handleInitPosL.y += this.y      
+    
+                    // get the new North handle position
+                    var handleNewPosL:Point = new Point();
+                    handleNewPosL.x = handleInitPosL.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+    
+                    // diff betwee both X positions
+                    var handlePosXDeltaL:Number = handleNewPosL.x - handleInitPosL.x;
+    
+                    // No we translate by the difference on X 
+                    translate_matrixL.translate(handlePosXDeltaL, 0);
+                    // and dont forget to aply the current component transformation
+                    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
+                    translate_matrixL.concat(this.transform.matrix);
+    
+                    // The new A position
+                    var translated_pointL:Point = translate_matrixL.transformPoint(new Point(0, 0));
+                    desiredPos.x =  translated_pointL.x;
+                    desiredPos.y =  translated_pointL.y;
+    
+                    // new size since we move A and resize widht at the same time
+                    desiredSize.x = this.width - handlePosXDeltaL;
+    
+                    if (desiredSize.x < 0) {
+                        // move A down AB vector
+                        // Find C coordinates that would be the new A position
+                        var bottomRightPos:Point = getRotatedRectPoint(rL, new Point(this.width, 0));
+                        this.x += bottomRightPos.x;
+                        this.y += bottomRightPos.y;
+                       
+                        this.width = 0;
+                        wasMoved = false;
+                        wasResized = false;
+                    }
+                    else {
+                        wasMoved = true;
+                        wasResized = true;
+                    }
+                }
+            }
+            
+            // UP handle
+            if( isResizingUp && !isResizingLeft && event.buttonDown)
+            {   
+                if (rotation == 0) {
+                    desiredPos.y = dest.y - localClickPoint.y;
+                    desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);                                                                                           
+                    
+                  
+                    
+                    if(alwaysMaintainAspectRatio) {
+                        desiredSize.x = desiredSize.y * aspectRatio;
+                    }
+                    
+                    this.wasResized = true;
+                    this.wasMoved = true;
+                }
+                else {
+                    // Creates a translation matrice used to find the
+                    // new coordinates of A (topleft) point.
+                    var translate_matrixU:Matrix = new Matrix();
+                    // get the North cursor current Y position
+                    // We use getRotatedRectPoint to get the rotated coordinates
+                    // of the North handle at position width / 2
+                    var rU:Number = this.rotation * (Math.PI/180);
+                    var handleInitPosU:Point = getRotatedRectPoint(rU, new Point(this.width/2,0));
+                    handleInitPosU.x += this.x
+                    handleInitPosU.y += this.y      
+                    // get the new North handle position
+                    var handleNewPosU:Point = new Point();
+                    handleNewPosU.y = handleInitPosU.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
+                    // diff between both Y positions
+                    var handlePosYDeltaU:Number = handleNewPosU.y - handleInitPosU.y;
+                    // No we translate by the difference on Y 
+                    translate_matrixU.translate(0, handlePosYDeltaU);
+                    // and dont forget to aply the current component transformation
+                    // see http://www.senocular.com/flash/tutorials/transformmatrix/
+                    translate_matrixU.concat(this.transform.matrix);
+    
+                    // The new A position
+                    var translated_pointU:Point = translate_matrixU.transformPoint(new Point(0, 0));
+                    desiredPos.x =  translated_pointU.x;
+                    desiredPos.y =  translated_pointU.y;
+    
+                    // new size since we move A and resize widht at the same time
+                    desiredSize.y = this.height - handlePosYDeltaU;
+                    if(alwaysMaintainAspectRatio) {
+                        desiredSize.x = desiredSize.y * aspectRatio;
+                    }
+                    // Check that if the desired y is smaller than 0 we set it to zero
+                    if (desiredSize.y < 0) {
+                        // move A down the height left
+                        // Find D coordinates that would be the new A position
+                        var bottomLeftPos:Point = getRotatedRectPoint(rU, new Point(0, this.height));
+                        this.x += bottomLeftPos.x;
+                        this.y += bottomLeftPos.y;
+                       
+                        this.height = 0;
+                        wasMoved = false;
+                        wasResized = false;
+                    }
+                    else {
+                        wasMoved = true;
+                        wasResized = true;
+                    }
+                }
+            }
+            
+            // TOP LEFT handle
+            if( isResizingUp && isResizingLeft && event.buttonDown)
+            {   
+                // simpler way of getting the position and size when no rotation is applied
+                if (rotation == 0) {
+                    desiredPos.y = dest.y - localClickPoint.y;
+                    desiredPos.x = dest.x - localClickPoint.x;
+                    desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);                                                                                           
+                    desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);                                                                                           
+                   
+                    
+                    
+                    if(alwaysMaintainAspectRatio){
+                        desiredSize.x = desiredSize.y / aspectRatio;
+                        desiredPos.x = (originalPosition.x + originalSize.x) - desiredSize.x;
+                    }
+                    this.wasResized = true;
+                    this.wasMoved = true;
+                }
+                else {
+                    var translate_matrix:Matrix = new Matrix();
+    
+                    var r:Number = this.rotation * (Math.PI/180);
+                    var handleInitPos:Point = getRotatedRectPoint(r, new Point(0,0));
+                    handleInitPos.x += this.x
+                    handleInitPos.y += this.y      
+    
+                    // get the new North/East handle position
+                    var handleNewPos:Point = new Point();
+                    handleNewPos.y = handleInitPos.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
+                    handleNewPos.x = handleInitPos.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+    
+                    // diff betwee both Y, X positions
+                    var handlePosYDelta:Number = handleNewPos.y - handleInitPos.y;
+                    var handlePosXDelta:Number = handleNewPos.x - handleInitPos.x;
+                                    
+                    // No we translate by the difference on Y and X
+                    translate_matrix.translate(handlePosXDelta, handlePosYDelta);
+                
+                    // and dont forget to aply the current component transformation
+                    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
+                    translate_matrix.concat(this.transform.matrix);
+    
+                    // The new A position
+                    var translated_point:Point = translate_matrix.transformPoint(new Point(0, 0));
+                    desiredPos.x =  translated_point.x;
+                    desiredPos.y =  translated_point.y;
+    
+                    // new size since we move A and resize widht and height the same time
+                    desiredSize.y = this.height - handlePosYDelta;
+                    desiredSize.x = this.width - handlePosXDelta;
+    
+                    // Guardian
+                    if (desiredSize.y < 0 || desiredSize.x < 0) {
+                        // Find C coordinates that would be the new A position
+                        var bottomrightPos:Point = getRotatedRectPoint(r, new Point(this.width, this.height));
+                        //var bottomleftPos:Point = getRotatedRectPoint(r, new Point(0, this.height));
+                        this.x += bottomrightPos.x;
+                        this.y += bottomrightPos.y;
+                        this.width = 0;
+                        this.height = 0;
+                        wasMoved = false;
+                        wasResized = false;
+                    }
+                    else {
+                        wasMoved = true;
+                        wasResized = true;
+                    }
+                }
+            }
+           
+           // TOP RIGHT handle
+           if( isResizingUp && isResizingRight && event.buttonDown)
+            {   
+                // simpler way of getting the position and size when no rotation is applied
+                if (rotation == 0) {
+                    desiredPos.y = dest.y - localClickPoint.y;
+                        
+                    desiredSize.y = originalSize.y + (originalPosition.y - desiredPos.y);                                                                                    
+                    desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
+                    
+                    // for ratio we inverse size x if negative
+                    if(alwaysMaintainAspectRatio && desiredSize.x < 0) {
+                        desiredSize.x  *= -1;
+                    }
+                    
+                    if (desiredSize.x > 0) {
+                      
+                        
+                        // KEEP RATIO
+                        if(alwaysMaintainAspectRatio) {
+                            if ((desiredSize.y - this.height) > (desiredSize.x - this.width)) {
+                                desiredSize.x = desiredSize.y * aspectRatio;  
+                                if (desiredPos.x < 0) {
+                                    desiredSize.x *= -1;
+                                }
+                            }
+                            else {
+                               desiredSize.y = desiredSize.x / aspectRatio;
+                               desiredPos.y = this.y - (desiredSize.y - this.height);
+                            }               
+                        }
+                        this.wasResized = true;
+                        this.wasMoved = true;
+                    }
+                } 
+                else {
+                    desiredSize.x = originalSize.x + globalToLocal( new Point(event.stageX, event.stageY)).x - localClickPoint.x ;
+                    
+                    if(alwaysMaintainAspectRatio) {
+                            if ((desiredSize.y - this.height) > (desiredSize.x - this.width)) {
+                                desiredSize.x = desiredSize.y * aspectRatio;  
+                                if (desiredPos.x < 0) {
+                                    desiredSize.x *= -1;
+                                }
+                            }
+                            else {
+                       
+                               //desiredSize.y = desiredSize.y / aspectRatio;
+                               desiredSize.y = desiredSize.x / aspectRatio;
 
-			    // diff betwee both X positions
-			    var handlePosXDeltaL:Number = handleNewPosL.x - handleInitPosL.x;
+//                               trace("INIT: desired A position (", desiredPos.x, ",",desiredPos.y,")");
+//                               trace("INIT: desired A size (", desiredSize.x, ",",desiredSize.y,")");
 
-			    // No we translate by the difference on X 
-			    translate_matrixL.translate(handlePosXDeltaL, 0);
-			    // and dont forget to aply the current component transformation
-			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
-			    translate_matrixL.concat(this.transform.matrix);
 
-			    // The new A position
-			    var translated_pointL:Point = translate_matrixL.transformPoint(new Point(0, 0));
-			    desiredPos.x =  translated_pointL.x;
-			    desiredPos.y =  translated_pointL.y;
+                               // apply rotation to point A
+                           
+                               var translate_matrix:Matrix = new Matrix();
+                               var r:Number = this.rotation * (Math.PI/180);
+                               var origin:Point = getRotatedRectPoint(r, new Point(0 , this.width));
+//                               trace("origin rotated (",origin.x,",",origin.y,")");
+                               origin.x += this.x
+                               origin.y += this.y 
+//                               trace("origin with current (",origin.x,",",origin.y,")");
 
-			    //trace("old height " ,this.height);
+                               // get the new point position
+                               var newPos:Point = new Point();
+                               newPos.y = origin.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
+                               newPos.x = origin.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
+//                               trace("new position we want (",newPos.x,",",newPos.y,")");
 
-			    // new size since we move A and resize widht at the same time
-			    desiredSize.x = this.width - handlePosXDeltaL;
+                               
+                               // diff betwee both Y, X positions
+                               var posYDelta:Number = newPos.y - origin.y;
+                               var posXDelta:Number = newPos.x - origin.x;
+//                               trace("delta (",posXDelta,",",posYDelta,")");
+                 
+                               // No we translate by the difference on Y and X
+                               translate_matrix.translate(posYDelta, posYDelta);
+                            
+                               // and dont forget to aply the current component transformation
+                               translate_matrix.concat(this.transform.matrix);
 
-			    // Guardian
-			    // trace("new height ", desiredSize.y);
-			    if (desiredSize.x < 0) {
-			        wasMoved = false;
-			        wasResized = false;
-			    }
-			    else {
-			        wasMoved = true;
-			        wasResized = true;
-			    }
-				
-			}
-			/* removed by greg: &&  rotation = 0 */
-			if( isResizingUp && !isResizingLeft && event.buttonDown)
-			{	
-				//trace("original matrix", this.transform.matrix);
+                               // The new A position
+                               var translated_point:Point = translate_matrix.transformPoint(new Point(0, 0));
+//                               trace("Transformed new A (",translated_point.x,",",translated_point.y,")");
+                               
+                                desiredPos.x =  translated_point.x;
+                                desiredPos.y =  translated_point.y;
+              
+//                                trace("translated_point " , translated_point.x, translated_point.y);
+                                this.wasResized = true;
+                                this.wasMoved = true;
+                            }      
+                    }
 
-			    // Create a translation matrice we will use it to find the
-			    // new coordinates of A (topleft) point.
+                    if (desiredSize.x < 0) { 
+                        this.width = 0;
+                        this.wasResized = false;
+                        this.wasMoved = false;
+                    }
+                }         
+            }
+            
+           // BOTTOM LEFT handle
+           if( isResizingDown && isResizingLeft && event.buttonDown)
+            {   
+                // simpler way of getting the position and size when no rotation is applied
+                if (rotation == 0) {
+                    desiredPos.x = dest.x - localClickPoint.x;
+                    desiredSize.x = originalSize.x + (originalPosition.x - desiredPos.x);                                                                                           
+                    desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
+                    if (desiredSize.y > 0) {
+                       
+                        this.wasResized = true;
+                        this.wasMoved = true;
+                    }
+                }
+                else {
+                    desiredSize.y = originalSize.y + globalToLocal( new Point(event.stageX, event.stageY)).y - localClickPoint.y ;
+                    if (desiredSize.y < 0) {
+                        this.height = 0;
+                        this.wasResized = false;
+                        this.wasMoved = false;
+                    }
+                }               
+            }
+                       
+            if( isMoving && event.buttonDown)
+            {
+                                    
+                desiredPos.y = dest.y - rotatedPoint.y;
+                desiredPos.x = dest.x - rotatedPoint.x;
 
-			    var translate_matrixU:Matrix = new Matrix();
-			    // get the North cursor current Y position
-			    // We use getRotatedRectPoint to get the rotated cooridates of the North
-			    // handle at position width / 2
+                wasMoved = true;            
+            }
+            
+       
+            
+            if( wasMoved || wasResized )
+            {
+                applyConstraints(desiredPos,desiredSize);
+                callLater( resizeMove, [desiredPos, desiredSize] );
+            }
+            
+            if(wasRotated){         
+                
+                if(rotateFromCenter){
+                    if(rotateEffect.isPlaying){
+                        rotateEffect.end();
+                    }
+                    rotateEffect = new Rotate();
+                    rotateEffect.target    = this;
+                    rotateEffect.duration  = 1;
+                    rotateEffect.angleFrom = rotation;
+                    rotateEffect.angleTo   = desiredRotation;
+                    rotateEffect.originX   = width/2;
+                    rotateEffect.originY   = height/2;
+                    rotateEffect.play();
+                }else{
+                    rotation = desiredRotation;
+                }               
+            }
+            
+            
+            if( wasMoved ) {    dispatchMoving() ; }
+            if( wasResized ) {  dispatchResizing() ; }
+            if( wasRotated ) {  dispatchRotating(); }
+            
+            event.updateAfterEvent();
+            
+        }
 
-			    var rU:Number = this.rotation * (Math.PI/180);
-			    var handleInitPosU:Point = getRotatedRectPoint(rU, new Point(this.width/2,0));
-			    handleInitPosU.x += this.x
-			    handleInitPosU.y += this.y      
+        /**
+        * Virtual Bound aware ResizeMove
+        * Except it does not take rotation into account
+        */
+        protected function resizeMove( desiredPos:Point, desiredSize:Point) : void
+        {           
+            x = desiredPos.x;
+            y = desiredPos.y;
+            if (isBounded) {
+                if ((desiredPos.y > (maxMoveY + height)) || (desiredPos.x > (maxMoveX + width))) {
+                    if (desiredPos.y > (maxMoveY + height))        
+                        y = maxMoveY + height - 1;
+                    if (desiredPos.x > (maxMoveX + width)) 
+                        x = maxMoveX + width - 1;     
+                }  
+            }
 
-			    // get the new North handle position
-			    var handleNewPosU:Point = new Point();
-			    handleNewPosU.y = handleInitPosU.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
-
-			    // diff betwee both Y positions
-			    var handlePosYDeltaU:Number = handleNewPosU.y - handleInitPosU.y;
-
-			    // No we translate by the difference on Y 
-			    translate_matrixU.translate(0, handlePosYDeltaU);
-			    // and dont forget to aply the current component transformation
-			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
-			    translate_matrixU.concat(this.transform.matrix);
-
-			    // The new A position
-			    var translated_pointU:Point = translate_matrixU.transformPoint(new Point(0, 0));
-			    desiredPos.x =  translated_pointU.x;
-			    desiredPos.y =  translated_pointU.y;
-
-			    //trace("old height " ,this.height);
-
-			    // new size since we move A and resize widht at the same time
-			    desiredSize.y = this.height - handlePosYDeltaU;
-
-			    // Guardian
-			    // trace("new height ", desiredSize.y);
-			    if (desiredSize.y < 0) {
-			        wasMoved = false;
-			        wasResized = false;
-			    }
-			    else {
-			        wasMoved = true;
-			        wasResized = true;
-			    }
-			}
-			if( isResizingUp && isResizingLeft && event.buttonDown)
-			{	
-				trace("original matrix", this.transform.matrix);
-
-			    // Create a translation matrice we will use it to find the
-			    // new coordinates of A (topleft) point.
-
-			    var translate_matrix:Matrix = new Matrix();
-
-			    var r:Number = this.rotation * (Math.PI/180);
-			    var handleInitPos:Point = getRotatedRectPoint(r, new Point(0,0));
-			    handleInitPos.x += this.x
-			    handleInitPos.y += this.y      
-
-			    // get the new North handle position
-			    var handleNewPos:Point = new Point();
-			    handleNewPos.y = handleInitPos.y + globalToLocal( new Point(event.stageX, event.stageY)).y;
-			    handleNewPos.x = handleInitPos.x + globalToLocal( new Point(event.stageX, event.stageY)).x;
-
-			    // diff betwee both Y positions
-			    var handlePosYDelta:Number = handleNewPos.y - handleInitPos.y;
-			    var handlePosXDelta:Number = handleNewPos.x - handleInitPos.x;
-				
-			//	trace("y delta " + handlePosYDelta )
-			//	trace("x delta " + handlePosXDelta )
-								
-			    // No we translate by the difference on Y and X
-			    translate_matrix.translate(handlePosXDelta, handlePosYDelta);
-			
-			    // and dont forget to aply the current component transformation
-			    // thanks to http://www.senocular.com/flash/tutorials/transformmatrix/
-			    translate_matrix.concat(this.transform.matrix);
-
-			    // The new A position
-			    var translated_point:Point = translate_matrix.transformPoint(new Point(0, 0));
-			    desiredPos.x =  translated_point.x;
-			    desiredPos.y =  translated_point.y;
-
-			  //  trace("old height " ,this.height);
-			//	trace("old width " ,this.width);
-
-			    // new size since we move A and resize widht at the same time
-			    desiredSize.y = this.height - handlePosYDelta;
-				desiredSize.x = this.width - handlePosXDelta;
-
-			    // Guardian
-			 //   trace("new height ", desiredSize.y);
-			//	trace("new width ", desiredSize.x);
-			    if (desiredSize.y < 0 || desiredSize.x < 0) {
-			        wasMoved = false;
-			        wasResized = false;
-			    }
-			    else {
-			        wasMoved = true;
-			        wasResized = true;
-			    }
-			}
-
-						 
-			
-			if( isMoving && event.buttonDown)
-			{
-									
-				desiredPos.y = dest.y - rotatedPoint.y;
-				desiredPos.x = dest.x - rotatedPoint.x;
-
-				
-				wasMoved = true;			
-			}
-			
-			if( (wasResized && alwaysMaintainAspectRatio ) ||
-				(wasResized && ( isCorner && cornerMaintainAspectRatio) ) )
-			{				
-				desiredSize.x = aspectRatio * desiredSize.y;
-			}
-			
-			if( wasMoved || wasResized )
-			{
-				applyConstraints(desiredPos,desiredSize);
-				callLater( resizeMove, [desiredPos, desiredSize] );
-			}
-			
-			if(wasRotated){			
-				
-				if(rotateFromCenter){
-					if(rotateEffect.isPlaying){
-						rotateEffect.end();
-					}
-					rotateEffect = new Rotate();
-					rotateEffect.target	   = this;
-					rotateEffect.duration  = 1;
-					rotateEffect.angleFrom = rotation;
-					rotateEffect.angleTo   = desiredRotation;
-					rotateEffect.originX   = width/2;
-					rotateEffect.originY   = height/2;
-					rotateEffect.play();
-				}else{
-					rotation = desiredRotation;
-				}				
-			}
-			
-			
-			if( wasMoved ) {    dispatchMoving() ; }
-			if( wasResized ) {  dispatchResizing() ; }
-			if( wasRotated ) {  dispatchRotating(); }
-			
-			event.updateAfterEvent();
-			
-		}
-
-		protected function resizeMove( desiredPos:Point, desiredSize:Point) : void
-		{			
-			width = desiredSize.x;
-			height = desiredSize.y;			
-			x = desiredPos.x;
-			y = desiredPos.y
-			validateNow();	
-			
-			trace(x + " " + width + " " + (x+width)) ;
-		}
+            width = desiredSize.x;
+            height = desiredSize.y;   
+            validateNow();  
+        }
 		
 		override public function set width(value:Number):void
 		{
-			trace("W" + value);
+//			trace("W" + value);
 			super.width = value;			
 		}
 		
 		override public function set x(value:Number):void
 		{
-			trace("X" + value);
+//			trace("X" + value);
 			super.x = value;
 		}
 
@@ -1283,9 +1483,19 @@
 			dispatchEvent( new ObjectHandleEvent(ObjectHandleEvent.OBJECT_DESELECTED) );		
 		}
 		
-		protected function getMouseAngle():Number{
-			return Math.atan2(parent.mouseY - y, parent.mouseX - x) * 180/Math.PI; 
-		}
+        /**
+        * getMouseAngle taking into account the canvas parent scrolling
+        */        
+        protected function getMouseAngle():Number{
+            // take scroll into account
+            var angle1:Number;
+            if( parent is Canvas) {
+                var parentCanvas:Canvas = parent as Canvas;
+                return Math.atan2((parent.mouseY + parentCanvas.verticalScrollPosition) - y, (parent.mouseX + parentCanvas.horizontalScrollPosition) - x) * 180/Math.PI; 
+            }
+            else 
+                return Math.atan2(parent.mouseY - y, parent.mouseX - x) * 180/Math.PI; 
+        }
 		
 		public function setKeyboardFocus() : void
 		{
@@ -1293,25 +1503,54 @@
 			setFocus();
 		}
 				
-		/* added by greg */
-		// return the rotated point coordinates
-		// help from http://board.flashkit.com/board/showthread.php?t=775357
+        /**
+        * Returns the rotated Point coordinates
+        * Inspired from http://board.flashkit.com/board/showthread.php?t=775357
+        */
+        public function getRotatedRectPoint( angle:Number, point:Point, rotationPoint:Point = null):Point {
+                    var ix:Number = (rotationPoint) ? rotationPoint.x : 0;
+                    var iy:Number = (rotationPoint) ? rotationPoint.y : 0;
+                    var m:Matrix = new Matrix( 1,0,0,1, point.x - ix, point.y - iy);
+                    m.rotate(angle);
+                    return new Point( m.tx + ix, m.ty + iy);
+         }
+
+
 		
-		public function getRotatedRectPoint( angle:Number, point:Point, rotationPoint:Point = null):Point {
-				    var ix:Number = (rotationPoint) ? rotationPoint.x : 0;
-				    var iy:Number = (rotationPoint) ? rotationPoint.y : 0;
-				    
-				    var m:Matrix = new Matrix( 1,0,0,1, point.x - ix, point.y - iy);
-				    
-				    m.rotate(angle);
-				    return new Point( m.tx + ix, m.ty + iy);
-				}
-		 /* end added */
-
-
-
-	}
+		
+		
+				/**
+			* UnLock a Shape by adding its mouse listeners
+			*/
+		    public function unlock():void {	   	       
+				addEventListener( MouseEvent.MOUSE_DOWN, onMouseDown );
+				addEventListener( MouseEvent.MOUSE_UP, onMouseUp );
+				addEventListener( MouseEvent.MOUSE_OVER,onMouseOver);
+				addEventListener( MouseEvent.MOUSE_OUT, onMouseOut );
+				addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
+			
+		        isLocked = true;
+		        SelectionManager.instance.addSelectable(this);
+		    }
+		    
+	        /**
+	        * Lock a Shape by removing its mouse listerners
+	        */	
+			public function lock():void {
+				removeEventListener( MouseEvent.MOUSE_UP, onMouseUp );
+				removeEventListener( MouseEvent.MOUSE_MOVE, onMouseMove);
+				removeEventListener( MouseEvent.MOUSE_DOWN, onMouseDown);
+				removeEventListener( MouseEvent.MOUSE_OUT,onMouseOut);
+				removeEventListener( MouseEvent.MOUSE_OVER, onMouseOver );
+				currentCursor = null;
 	
-
+				this.mouseChildren = false;
+				this._allowKeyboardManipulation = false;
+				
+				isLocked = false;
+				SelectionManager.instance.removeSelectable(this);
+			}
+	
+	}
 	
 }
