@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+	backgroundGradientAlphas="[1.0, 1.0]" 
+	backgroundGradientColors="[#616161, #616161]"
+	creationComplete="init()"
+	>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.Handle;
+			import com.roguedevelopment.objecthandles.ObjectHandles;
+			import mx.effects.Tween;
+			import mx.effects.Move;
+			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
+			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
+			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
+			
+			protected var objectHandles:ObjectHandles;
+			
+			protected function init() : void
+			{
+				objectHandles = new ObjectHandles( mainCanvas );
+				
+				var model:SimpleDataModel = new SimpleDataModel();
+				var shape:SimpleFlexShape = new SimpleFlexShape( model );
+				objectHandles.registerComponent( model, shape );
+				mainCanvas.addChild( shape );
+				
+				model = new SimpleDataModel();
+				model.y += 100;
+				shape = new SimpleFlexShape( model );
+				objectHandles.registerComponent( model, shape );
+				mainCanvas.addChild( shape );
+				
+				model = new SimpleDataModel();
+				model.x += 100;
+				var spriteShape:SimpleSpriteShape = new SimpleSpriteShape(model);
+				objectHandles.registerComponent( model, spriteShape );
+				mainCanvas.rawChildren.addChild( spriteShape );
+
+				model = new SimpleDataModel();
+				model.x += 100;
+				model.y += 100;
+				spriteShape = new SimpleSpriteShape(model);
+				objectHandles.registerComponent( model, spriteShape );
+				mainCanvas.rawChildren.addChild( spriteShape );
+				
+				var h:Handle = new Handle();
+				h.x = 300;
+				h.y=300;
+				mainCanvas.rawChildren.addChild(h);
+				
+				
+				objectHandles.registerComponent(testButton,testButton);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="mainCanvas" right="10" left="10" top="10" bottom="10" backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2">
+		<mx:Button x="204" y="483" label="Button" width="99" height="52" id="testButton"/>
+	</mx:Canvas>
+	
+</mx:Application>
