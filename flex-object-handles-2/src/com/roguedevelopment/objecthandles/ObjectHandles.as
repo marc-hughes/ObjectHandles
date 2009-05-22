@@ -50,7 +50,9 @@ package com.roguedevelopment.objecthandles
 	
 	import mx.containers.Canvas;
 	import mx.core.ClassFactory;
+	import mx.core.Container;
 	import mx.core.IFactory;
+	import mx.events.ScrollEvent;
 	
 	public class ObjectHandles
 	{
@@ -93,6 +95,7 @@ package com.roguedevelopment.objecthandles
 			container.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
 			//container.addEventListener(MouseEvent.ROLL_OUT, onContainerRollOut );
 			container.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
+			container.addEventListener( ScrollEvent.SCROLL, onContainerScroll );
 			
 			
 			if( selectionManager )			
@@ -229,6 +232,13 @@ package com.roguedevelopment.objecthandles
 			isDragging = false;
 		}
 		
+		protected function onContainerScroll(event:ScrollEvent):void
+		{
+			for each (var model:Object in models )
+			{
+				updateHandlePositions(model);
+			}
+		}
 		protected function onContainerMouseMove( event:MouseEvent ) : void
 		{
 			if( ! isDragging ) { return; }
@@ -531,9 +541,24 @@ package com.roguedevelopment.objecthandles
 			addToContainer( handle );						
 		}
 		
+		protected function getContainerScrollAmount() : Point
+		{
+			var rv:Point = new Point(0,0);
+			
+			if( container is Container )
+			{
+				var con:Container = container as Container;
+				rv.x = con.horizontalScrollPosition;
+				rv.y = con.verticalScrollPosition;
+			}
+			
+			return rv;
+		}
+		
 		protected function updateHandlePositions( model:Object ) : void
 		{
 			var h:Array = handles[model]
+			var scroll:Point = getContainerScrollAmount();
 			
 			if( ! h ) { return; }
 			for each ( var handle:Handle in h )
@@ -548,13 +573,13 @@ package com.roguedevelopment.objecthandles
 					 							(model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y); // the tY 
 					m.rotate( toRadians( model.rotation ) );
 					var p:Point = m.transformPoint( zero ); 				 							
-					handle.x = p.x + model.x - Math.floor(handle.width / 2);
-					handle.y = p.y + model.y - Math.floor(handle.height / 2);
+					handle.x = p.x + model.x - Math.floor(handle.width / 2) - scroll.x;
+					handle.y = p.y + model.y - Math.floor(handle.height / 2) - scroll.y;
 				}
 				else
 				{
-					handle.x = p.x + model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x;
-					handle.y = p.y + model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y;
+					handle.x = p.x + model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x - scroll.x;
+					handle.y = p.y + model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y - scroll.y;
 				}
 			}	
 		}

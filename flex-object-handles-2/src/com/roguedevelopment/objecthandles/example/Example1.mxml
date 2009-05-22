@@ -29,11 +29,12 @@
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="100%" height="100%" 
 				xmlns:example="com.roguedevelopment.objecthandles.example.*"
-				horizontalScrollPolicy="off"
-				verticalScrollPolicy="off"
+				horizontalScrollPolicy="on"
+				verticalScrollPolicy="on"
 				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
 				creationComplete="init()"
 				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
+				
 				>
 		<mx:Script>
 		<![CDATA[
@@ -89,6 +90,6 @@
 				<example:SimpleFlexShape model="{flexModel2}" />
 		</mx:Canvas>
 		
-
+		<mx:Button x="3000" y="3000"/>
 	
 </mx:Canvas>
