@@ -91,7 +91,7 @@ package com.roguedevelopment.objecthandles
 		{		
 			this.container = container;
 			container.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
-			container.addEventListener(MouseEvent.ROLL_OUT, onContainerRollOut );
+			//container.addEventListener(MouseEvent.ROLL_OUT, onContainerRollOut );
 			container.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
 			
 			

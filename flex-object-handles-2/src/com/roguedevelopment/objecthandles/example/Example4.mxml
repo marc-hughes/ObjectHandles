@@ -94,7 +94,7 @@
 			}
 		]]>
 	</mx:Script>				
-		<mx:Text selectable="false" text="You now have control over what handles appear, and where they appear.  The left example removes the corner and center handles. The right example removes the midpoint handles, but creates 4 move-handles in the middle." 
+		<mx:Text selectable="false" text="Here's an example with editable text, something that was almost impossible to do with ObjectHandles V1.  By using a move-handle, mouse clicks in the visual component aren't eaten by ObjectHandles." 
 			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
 		
 		

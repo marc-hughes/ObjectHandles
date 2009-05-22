@@ -53,6 +53,7 @@
 			
 			[Bindable] protected var flexModel1:SimpleDataModel;
 			[Bindable] protected var flexModel2:SimpleDataModel;
+			[Bindable] protected var flexModel3:SimpleDataModel;
 			
 			protected function init() : void
 			{
@@ -132,20 +133,31 @@
 				flexModel2.height = 50;
 				objectHandles.registerComponent( flexModel2, flexShape2 , handles);
 				
-				var constraint:SizeConstraint = new SizeConstraint();
-				constraint.minWidth = 20;
-				constraint.maxWidth = 500;
-				constraint.minHeight = 20;
-				constraint.maxHeight = 200;
-				objectHandles.constraints.push( constraint );							
+				handles = objectHandles.defaultHandles.concat();
+				
+				handles.push( new HandleDescription( HandleRoles.RESIZE_LEFT,new Point(0,25) ,				new Point(0,0) ) ); 
+				handles.push( new HandleDescription( HandleRoles.RESIZE_LEFT,	new Point(0,75) ,	new Point(0,0) ) ); 	
+				handles.push( new HandleDescription( HandleRoles.RESIZE_RIGHT,	new Point(100,25) , 	new Point(0,0) ) );
+				handles.push( new HandleDescription( HandleRoles.RESIZE_RIGHT,	new Point(100,75) , 	new Point(0,0) ) );
+				handles.push( new HandleDescription( HandleRoles.ROTATE,	new Point(50,0) , 	new Point(0,-20) ) );
+				handles.push( new HandleDescription( HandleRoles.ROTATE,	new Point(50,100) , 	new Point(0,20) ) );
+				handles.push( new HandleDescription( HandleRoles.MOVE,	new Point(50,50) , 	new Point(0,0) ) );
+																																																
+				flexModel3 = new SimpleDataModel();
+				flexModel3.x = 50;
+				flexModel3.y = 250;
+				flexModel3.width = 200;
+				flexModel3.height = 150;
+				objectHandles.registerComponent( flexModel3, flexShape3 , handles);
 			}
 		]]>
 	</mx:Script>				
-		<mx:Text selectable="false" text="You now have control over what handles appear, and where they appear.  The left example removes the corner and center handles. The right example removes the midpoint handles, but creates a move-handle in the middle.  If a component has a move-handle, then clicking and dragging the component itself does nothing." 
-			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+		<mx:Text selectable="false" text="You now have control over what handles appear, and where they appear.  The left example removes the corner and center handles. The right example removes the midpoint handles, but creates a move-handle in the middle.  If a component has a move-handle, then clicking and dragging the component itself does nothing.  The bottom object has an absurd number of handles." 
+			width="450" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
 		
 		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />
 		<example:SimpleFlexShape id="flexShape2" model="{flexModel2}" />
+		<example:SimpleFlexShape id="flexShape3" model="{flexModel3}" />
 
 		
 
