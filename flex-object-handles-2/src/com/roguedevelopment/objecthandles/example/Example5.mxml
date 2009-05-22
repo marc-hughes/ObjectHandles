@@ -35,9 +35,11 @@
 				creationComplete="init()"
 				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
 				>
+			
 
 		<mx:Script>
 		<![CDATA[
+			import com.roguedevelopment.objecthandles.HandleDefinitions;
 			import com.roguedevelopment.objecthandles.HandleRoles;
 			import com.roguedevelopment.objecthandles.HandleDescription;
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
@@ -51,48 +53,32 @@
 			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
 			
 			protected var objectHandles:ObjectHandles;
-			
-			[Bindable] protected var dataModel:TextDataModel;
-			[Bindable] protected var dataModel2:TextDataModel;
+		
 			
 			
 			protected function init() : void
 			{
 				
 				objectHandles = new ObjectHandles( this );
-				var handles:Array = objectHandles.defaultHandles.concat();
 				
-			
-				handles.push( new HandleDescription( HandleRoles.MOVE,
-															new Point(50,50) , 
-															new Point(0,0) ) ); 
+
+				objectHandles.registerComponent( button, button , HandleDefinitions.NO_ROTATE_DEFINITION);
+				objectHandles.registerComponent( list, list );
+				objectHandles.registerComponent( combo, combo, HandleDefinitions.DEFAULT_PLUS_MOVE_DEFINITION );
 				
-				dataModel = new TextDataModel();
-				dataModel.x = 10;
-				dataModel.y = 150;
-				dataModel.width = 100;
-				dataModel.height = 100;
-				dataModel.text = "Hello World!";				
-				objectHandles.registerComponent( dataModel, textArea , handles);	
-
-
-				dataModel2 = new TextDataModel();
-				dataModel2.x = 150;
-				dataModel2.y = 150;
-				dataModel2.width = 100;
-				dataModel2.height = 100;
-				dataModel2.text = "Goodbye cruel world!";				
-				objectHandles.registerComponent( dataModel2, textArea2 , handles);
-
 			}
 		]]>
-	</mx:Script>				
-		<mx:Text selectable="false" text="Here's an example with editable text, something that was almost impossible to do with ObjectHandles V1.  By using a move-handle, mouse clicks in the visual component aren't eaten by ObjectHandles." 
+	</mx:Script>	
+	
+					
+		<mx:Text selectable="false" text="It is possible to use the visual object AS the datamodel object.  But I highly recommend against this.  Don't do it unless you have some super-simple prototype-level thing to do." 
 			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+						
+		<mx:Button x="57" y="88" label="Button" id="button" fontSize="18"/>
+		<mx:List x="281" y="41" id="list"></mx:List>
+		<mx:ComboBox id="combo"  x="101" y="230"/>
 		
 		
-		<example:MoveableTextArea model="{dataModel}" id="textArea" fontFamily="myVerdana" fontSize="18" />
-		<example:MoveableTextArea model="{dataModel2}" id="textArea2" fontFamily="myVerdana" fontSize="18" />
 
 		
 
