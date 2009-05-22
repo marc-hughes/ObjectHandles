@@ -38,7 +38,8 @@
 				>
 		<mx:Script>
 		<![CDATA[
-			import com.roguedevelopment.CircleHandle;
+			import com.roguedevelopment.objecthandles.CircleHandle;
+			
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
 			import com.roguedevelopment.objecthandles.Handle;

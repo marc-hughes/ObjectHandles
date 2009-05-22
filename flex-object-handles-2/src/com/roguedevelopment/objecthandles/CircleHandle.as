@@ -1,4 +1,4 @@
-package com.roguedevelopment
+package com.roguedevelopment.objecthandles
 {
 	import com.roguedevelopment.objecthandles.Handle;
 
