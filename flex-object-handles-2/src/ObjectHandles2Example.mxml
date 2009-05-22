@@ -1,82 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical"
+	verticalGap="0"
+	paddingBottom="10"
+	paddingLeft="10"
+	paddingTop="0"
+	paddingRight="10" 
 	backgroundGradientAlphas="[1.0, 1.0]" 
 	backgroundGradientColors="[#616161, #616161]"
 	creationComplete="init()"
-	>
+	xmlns:example="com.roguedevelopment.objecthandles.example.*">
 	
-	<mx:Script>
-		<![CDATA[
-			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
-			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
-			import com.roguedevelopment.objecthandles.Handle;
-			import com.roguedevelopment.objecthandles.ObjectHandles;
-			import mx.effects.Tween;
-			import mx.effects.Move;
-			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
-			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
-			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
-			
-			protected var objectHandles:ObjectHandles;
-			
-			protected function init() : void
-			{
-				objectHandles = new ObjectHandles( mainCanvas );
-				
-				var model:SimpleDataModel = new SimpleDataModel();
-				var shape:SimpleFlexShape = new SimpleFlexShape( model );
-				objectHandles.registerComponent( model, shape );
-				mainCanvas.addChild( shape );
-				
-				model = new SimpleDataModel();
-				model.y += 100;
-				shape = new SimpleFlexShape( model );
-				objectHandles.registerComponent( model, shape );
-				mainCanvas.addChild( shape );
-				
-				model = new SimpleDataModel();
-				model.x += 100;
-				var spriteShape:SimpleSpriteShape = new SimpleSpriteShape(model);
-				objectHandles.registerComponent( model, spriteShape );
-				mainCanvas.rawChildren.addChild( spriteShape );
-
-				model = new SimpleDataModel();
-				model.x += 100;
-				model.y += 100;
-				spriteShape = new SimpleSpriteShape(model);
-				objectHandles.registerComponent( model, spriteShape );
-				mainCanvas.rawChildren.addChild( spriteShape );
-				
-				var h:Handle = new Handle();
-				h.x = 300;
-				h.y=300;
-				mainCanvas.rawChildren.addChild(h);
-				
-				
-				objectHandles.registerComponent(testButton,testButton);
-				objectHandles.registerComponent(textarea,textarea);
-				
-				var constraint:SizeConstraint = new SizeConstraint();
-				constraint.minWidth = 20;
-				constraint.maxWidth = 200;
-				constraint.minHeight = 20;
-				constraint.maxHeight = 200;
-		//		objectHandles.constraints.push( constraint );
-				
-				var constraint2:MovementConstraint = new MovementConstraint();
-				constraint2.minX = 20;
-				constraint2.minY = 20;
-				constraint2.maxX = 300;
-				constraint2.maxY = 300;
-			//	objectHandles.constraints.push( constraint2 );				
-			}
-		]]>
-	</mx:Script>
+	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}">
+	</mx:LinkBar>
+	<mx:ViewStack width="100%" height="100%" id="viewStack" >
+		<example:Example1 label="Example 1"  id="example1"/>
+		<example:Example2 label="Example 2"/>
+		<example:Example3 label="Example 3"/>
+	</mx:ViewStack>
 	
-	<mx:Canvas id="mainCanvas" right="10" left="10" top="10" bottom="10" backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2">
-		<!--<mx:Canvas x="20" y="20" width="280" height="280" borderStyle="solid" borderColor="#aaaaaa" /> This can show a border around the movement constraint above. -->
-		<mx:Button x="204" y="483" label="Button" width="99" height="52" id="testButton"/>
-		<mx:TextArea x="204" y="550" width="100" height="25" id="textarea" />
-	</mx:Canvas>
 	
 </mx:Application>

@@ -5,12 +5,20 @@ package com.roguedevelopment.objecthandles.example
 
 	public class SimpleFlexShape extends UIComponent
 	{
-		protected var model:SimpleDataModel;
+		protected var _model:SimpleDataModel;
 		
-		public function SimpleFlexShape(model:SimpleDataModel)
+		public function SimpleFlexShape()
 		{
 			super();
-			this.model = model;
+		}
+
+		public function set model( model:SimpleDataModel ) : void
+		{			
+			if( _model )
+			{
+				_model.removeEventListener( PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
+			}			
+			_model = model;
 			redraw();
 			x = model.x;
 			y = model.y;
@@ -38,10 +46,11 @@ package com.roguedevelopment.objecthandles.example
 		
 		protected function redraw() : void
 		{
+			if(!_model){return;}
 			graphics.clear();
 			graphics.lineStyle(1,0);
 			graphics.beginFill(0x555555,0.6);
-			graphics.drawRoundRect(0,0,model.width,model.height,0,0);
+			graphics.drawRoundRect(0,0,_model.width,_model.height,0,0);
 			graphics.endFill();
 		}
 		

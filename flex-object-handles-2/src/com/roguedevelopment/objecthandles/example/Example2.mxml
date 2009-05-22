@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="100%" height="100%" 
+				xmlns:example="com.roguedevelopment.objecthandles.example.*"
+				horizontalScrollPolicy="off"
+				verticalScrollPolicy="off"
+				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
+				creationComplete="init()"
+				>						
+		
+		<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
+			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
+			import com.roguedevelopment.objecthandles.Handle;
+			import com.roguedevelopment.objecthandles.ObjectHandles;
+			import mx.effects.Tween;
+			import mx.effects.Move;
+			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
+			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
+			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
+			
+			protected var objectHandles:ObjectHandles;
+			
+		
+			
+			protected function init() : void
+			{
+				objectHandles = new ObjectHandles( this );
+				
+				
+				var model:SimpleDataModel;							
+				
+				model = new SimpleDataModel();
+				model.x += 100;
+				model.y += 200;
+				var spriteShape:SimpleSpriteShape = new SimpleSpriteShape(model);
+				objectHandles.registerComponent( model, spriteShape );
+				rawChildren.addChild( spriteShape );
+
+				model = new SimpleDataModel();
+				model.x += 200;
+				model.y += 200;
+				spriteShape = new SimpleSpriteShape(model);
+				objectHandles.registerComponent( model, spriteShape );
+				rawChildren.addChild( spriteShape );
+				
+				
+				
+				var constraint:SizeConstraint = new SizeConstraint();
+				constraint.minWidth = 20;
+				constraint.maxWidth = 200;
+				constraint.minHeight = 20;
+				constraint.maxHeight = 200;
+				objectHandles.constraints.push( constraint );
+				
+				var constraint2:MovementConstraint = new MovementConstraint();
+				constraint2.minX = 20;
+				constraint2.minY = 20;
+				constraint2.maxX = 300;
+				constraint2.maxY = 300;
+			//	objectHandles.constraints.push( constraint2 );				
+			}
+		]]>
+	</mx:Script>
+		<mx:Text text="This example has two objects that are derived from Sprite, so they are not flex components.  Version 1 of ObjectHandles was unable to do this easily." width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+	
+	
+	
+</mx:Canvas>
