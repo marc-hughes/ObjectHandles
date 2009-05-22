@@ -40,6 +40,7 @@
  **/
 package com.roguedevelopment.objecthandles
 {
+	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
@@ -56,10 +57,10 @@ package com.roguedevelopment.objecthandles
 		protected const zero:Point = new Point(0,0);
 		
 		protected var container:Sprite;
-		protected var selectionManager:ObjectHandlesSelectionManager;
+		public var selectionManager:ObjectHandlesSelectionManager;
 		protected var handleFactory:IFactory;
 		
-		protected var defaultHandles:Array = [];
+		public var defaultHandles:Array = [];
 		
 		// Key = a Model, value = an Array of handles
 		protected var handles:Dictionary = new Dictionary(); 
@@ -142,9 +143,9 @@ package com.roguedevelopment.objecthandles
 														new Point(0,50) ,
 														new Point(0,0) ) ); 
 		
-			defaultHandles.push( new HandleDescription( HandleRoles.MOVE,
-														new Point(50,50) , 
-														new Point(0,0) ) ); 
+//			defaultHandles.push( new HandleDescription( HandleRoles.MOVE,
+//														new Point(50,50) , 
+//														new Point(0,0) ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.ROTATE,
 														new Point(100,50) , 
@@ -161,6 +162,19 @@ package com.roguedevelopment.objecthandles
 			{
 				handleDefinitions[ dataModel ] = handleDescriptions;
 			}				
+		}
+		
+		/**
+		 * Returns true if the given model should have a movement handle.
+		 **/
+		protected function hasMovementHandle( model:Object ) : Boolean
+		{
+			var desiredHandles:Array = getHandleDefinitions(model);
+			for each ( var handle:HandleDescription in desiredHandles )
+			{
+				if( HandleRoles.isMove( handle.role ) ) return true;
+			}
+			return false;
 		}
 		
 		public function unregisterComponent( visualDisplay:EventDispatcher ) : void
@@ -195,10 +209,14 @@ package com.roguedevelopment.objecthandles
 		}
 		
 		protected function onComponentMouseDown(event:MouseEvent):void
-		{
-			currentDragRole = HandleRoles.MOVE; // a mouse down on the component itself as opposed to a handle is a move operation.
+		{			
 			handleSelection( event );
-			handleBeginDrag( event );
+			var model:Object = findModel( event.target as DisplayObject);
+			if( ! hasMovementHandle(model) )
+			{
+				currentDragRole = HandleRoles.MOVE; // a mouse down on the component itself as opposed to a handle is a move operation.
+				handleBeginDrag( event );
+			}
 		}
 		
 		protected function onContainerRollOut(event:MouseEvent) : void
@@ -440,9 +458,23 @@ package com.roguedevelopment.objecthandles
 			translation.y += translationp.y;
 		}		
 		
+		protected function findModel( display:DisplayObject ) : Object
+		{
+			var model:Object = models[ display ];
+			
+			
+			while( (model==null) && (display.parent != null) )
+			{
+				display = display.parent as DisplayObject;
+				model = models[ display ];
+			}
+			return model;
+		}
+		
 		protected function handleSelection( event : MouseEvent ) : void
 		{
-			var model:Object = models[ event.target ];
+			var model:Object = findModel( event.target as DisplayObject );
+			
 			if( ! model ) { return; }
 			selectionManager.setSelected( model );
 			
@@ -460,13 +492,8 @@ package com.roguedevelopment.objecthandles
 		protected function setupHandles( model:Object ) : void
 		{	
 			removeHandles(model);		
-			var desiredHandles:Array;
-			desiredHandles = handleDefinitions[ model ];
-			if(! desiredHandles)
-			{
-				desiredHandles = defaultHandles;
-			}
 			
+			var desiredHandles:Array = getHandleDefinitions(model);
 			for each ( var descriptor:HandleDescription in desiredHandles )
 			{
 				createHandle( model, descriptor);
@@ -474,6 +501,17 @@ package com.roguedevelopment.objecthandles
 			
 			updateHandlePositions(model);
 			 
+		}
+		
+		protected function getHandleDefinitions( model:Object ) :Array
+		{
+			var desiredHandles:Array;
+			desiredHandles = handleDefinitions[ model ];
+			if(! desiredHandles)
+			{
+				desiredHandles = defaultHandles;
+			}
+			return desiredHandles;
 		}
 		
 		protected function createHandle( model:Object, descriptor:HandleDescription ) : void

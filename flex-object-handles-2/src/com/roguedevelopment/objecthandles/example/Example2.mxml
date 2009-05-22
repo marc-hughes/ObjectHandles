@@ -7,6 +7,7 @@
 				verticalScrollPolicy="off"
 				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
 				creationComplete="init()"
+				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
 				>						
 		
 		<mx:Script>

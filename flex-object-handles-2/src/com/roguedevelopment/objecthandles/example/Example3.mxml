@@ -33,6 +33,7 @@
 				verticalScrollPolicy="off"
 				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
 				creationComplete="init()"
+				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
 				>
 		<mx:Script>
 		<![CDATA[
@@ -119,20 +120,9 @@
 															new Point(0,0) ) ); 
 			
 				handles.push( new HandleDescription( HandleRoles.MOVE,
-															new Point(25,25) , 
+															new Point(50,50) , 
 															new Point(0,0) ) ); 
 	
-				handles.push( new HandleDescription( HandleRoles.MOVE,
-															new Point(25,75) , 
-															new Point(0,0) ) ); 
-	
-				handles.push( new HandleDescription( HandleRoles.MOVE,
-															new Point(75,75) , 
-															new Point(0,0) ) ); 
-	
-				handles.push( new HandleDescription( HandleRoles.MOVE,
-															new Point(75,25) , 
-															new Point(0,0) ) ); 
 		
 			
 				flexModel2 = new SimpleDataModel();
@@ -151,7 +141,7 @@
 			}
 		]]>
 	</mx:Script>				
-		<mx:Text selectable="false" text="You now have control over what handles appear, and where they appear.  The left example removes the corner and center handles. The right example removes the midpoint handles, but creates 4 move-handles in the middle." 
+		<mx:Text selectable="false" text="You now have control over what handles appear, and where they appear.  The left example removes the corner and center handles. The right example removes the midpoint handles, but creates a move-handle in the middle.  If a component has a move-handle, then clicking and dragging the component itself does nothing." 
 			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
 		
 		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />

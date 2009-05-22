@@ -9,6 +9,7 @@
 	backgroundGradientColors="[#616161, #616161]"
 	creationComplete="init()"
 	xmlns:example="com.roguedevelopment.objecthandles.example.*">
+
 	
 	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}">
 	</mx:LinkBar>
@@ -16,6 +17,7 @@
 		<example:Example1 label="Example 1"  id="example1"/>
 		<example:Example2 label="Example 2"/>
 		<example:Example3 label="Example 3"/>
+		<example:Example4 label="Example 4"/>
 	</mx:ViewStack>
 	
 	
