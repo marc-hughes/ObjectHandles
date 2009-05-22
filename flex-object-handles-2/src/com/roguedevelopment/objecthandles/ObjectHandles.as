@@ -578,8 +578,8 @@ package com.roguedevelopment.objecthandles
 				}
 				else
 				{
-					handle.x = p.x + model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x - scroll.x;
-					handle.y = p.y + model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y - scroll.y;
+					handle.x =  model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x - scroll.x;
+					handle.y =  model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y - scroll.y;
 				}
 			}	
 		}
