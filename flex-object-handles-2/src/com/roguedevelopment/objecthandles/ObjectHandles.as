@@ -3,6 +3,7 @@ package com.roguedevelopment.objecthandles
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
@@ -12,6 +13,8 @@ package com.roguedevelopment.objecthandles
 	
 	public class ObjectHandles
 	{
+		protected const zero:Point = new Point(0,0);
+		
 		protected var container:Sprite;
 		protected var selectionManager:ObjectHandlesSelectionManager;
 		protected var handleFactory:IFactory;
@@ -33,6 +36,7 @@ package com.roguedevelopment.objecthandles
 		protected var isDragging:Boolean = false;
 		protected var currentDragRole:uint = 0;
 		protected var mouseDownPoint:Point;
+		protected var mouseDownRotation:Number;
 		protected var originalGeometry:DragGeometry;
 		
 		public var constraints:Array = [];
@@ -163,38 +167,53 @@ package com.roguedevelopment.objecthandles
 		protected function onContainerMouseMove( event:MouseEvent ) : void
 		{
 			if( ! isDragging ) { return; }
-			var proposed:DragGeometry = originalGeometry.clone();
+			var translation:DragGeometry = new DragGeometry();
 			
 			if( HandleRoles.isMove( currentDragRole ) )
 			{
-				applyMovement( event, proposed );
+				applyMovement( event, translation );
 			}
 			
 			if( HandleRoles.isResizeLeft( currentDragRole ) )
 			{
-				applyResizeLeft( event, proposed );
+				applyResizeLeft( event, translation );
+			}
+			
+			if( HandleRoles.isResizeUp( currentDragRole) )
+			{
+				applyResizeUp( event, translation );
+			}
+			
+			if( HandleRoles.isResizeRight( currentDragRole ) )
+			{
+				applyResizeRight( event, translation );
+			}
+
+			if( HandleRoles.isResizeDown( currentDragRole ) )
+			{
+				applyResizeDown( event, translation );			
 			}
 			
 			if( HandleRoles.isRotate( currentDragRole ) )
 			{
-				applyRotate( event, proposed );
+				applyRotate( event, translation );
 			}
 			
 			
 			for each ( var constraint:IConstraint in constraints )
 			{
-				constraint.applyConstraint( originalGeometry, proposed, currentDragRole );
+				constraint.applyConstraint( originalGeometry, translation, currentDragRole );
 			}						
 			
 			if( selectionManager.currentlySelected.length == 1 )
 			{
 				var current:Object = selectionManager.currentlySelected[0];
 				
-				if( current.hasOwnProperty("x") ) current.x = proposed.x;
-				if( current.hasOwnProperty("y") ) current.y = proposed.y;
-				if( current.hasOwnProperty("width") ) current.width = proposed.width;
-				if( current.hasOwnProperty("height") ) current.height = proposed.height;
-				if( current.hasOwnProperty("rotation") ) current.rotation = proposed.rotation;
+				if( current.hasOwnProperty("x") ) current.x = translation.x + originalGeometry.x;
+				if( current.hasOwnProperty("y") ) current.y = translation.y + originalGeometry.y;
+				if( current.hasOwnProperty("width") ) current.width = translation.width + originalGeometry.width;
+				if( current.hasOwnProperty("height") ) current.height = translation.height + originalGeometry.height;
+				if( current.hasOwnProperty("rotation") ) current.rotation = translation.rotation + originalGeometry.rotation;
 				
 				updateHandlePositions(  current );
 				 	
@@ -210,39 +229,157 @@ package com.roguedevelopment.objecthandles
 		
 		protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
 		{
-             proposed.rotation = Math.round(localClickRotation - localClickAngle + getMouseAngle());       
+             proposed.rotation = Math.round(originalGeometry.rotation - mouseDownRotation + getAngle(event.stageX, event.stageY));       
   		}     
   		
-  		 protected function getMouseAngle():Number
+  		 protected function getAngle(x:Number,y:Number):Number
   		 {
-          
+          	var mousePos:Point = container.globalToLocal( new Point(x,y) );
             var angle1:Number;
-            if( parent is Canvas) {
-                var parentCanvas:Canvas = parent as Canvas;
-                return Math.atan2((parent.mouseY + parentCanvas.verticalScrollPosition) - y, (parent.mouseX + parentCanvas.horizontalScrollPosition) - x) * 180/Math.PI; 
+            if( container is Canvas) {
+                var parentCanvas:Canvas = container as Canvas;
+                return Math.atan2((mousePos.y + parentCanvas.verticalScrollPosition) - originalGeometry.y, (mousePos.x + parentCanvas.horizontalScrollPosition) - originalGeometry.x) * 180/Math.PI; 
             }
             else 
-                return Math.atan2(parent.mouseY - y, parent.mouseX - x) * 180/Math.PI; 
+                return Math.atan2(mousePos.y - originalGeometry.x, mousePos.x - originalGeometry.y) * 180/Math.PI; 
         }
-		protected function applyMovement( event:MouseEvent, proposed:DragGeometry ) : void
+		protected function applyMovement( event:MouseEvent, translation:DragGeometry ) : void
 		{
 			var mouseDelta:Point = new Point( event.stageX - mouseDownPoint.x, event.stageY - mouseDownPoint.y );
 			var currentMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
 			
-			proposed.x = originalGeometry.x + mouseDelta.x;
-			proposed.y = originalGeometry.y + mouseDelta.y;
+			translation.x = mouseDelta.x;
+			translation.y = mouseDelta.y;
 			
 		}
 		
-		protected function applyResizeLeft( event:MouseEvent, proposed:DragGeometry ) : void
+		protected function applyResizeRight( event:MouseEvent, translation:DragGeometry ) : void
 		{
-			var mouseDelta:Point = new Point( event.stageX - mouseDownPoint.x, event.stageY - mouseDownPoint.y );
-			var currentMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
+			var containerOriginalMousePoint:Point = container.globalToLocal(new Point( mouseDownPoint.x, mouseDownPoint.y ));		
+			var containerMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
 			
-			proposed.x = originalGeometry.x + mouseDelta.x;
-			proposed.y = originalGeometry.y + mouseDelta.y;
+			// "local coordinates" = the coordinate system that is relative to the piece that moves around.
 			
+			// matrix describes the current rotation and helps us to go from container to local coordinates 
+			var matrix:Matrix = new Matrix();
+			matrix.rotate( toRadians( originalGeometry.rotation ) );
+			// The inverse matrix helps us to go from local to container coordinates
+			var invMatrix:Matrix = matrix.clone();
+			invMatrix.invert();
+			
+			// The point where we pressed the mouse down in local coordinates
+			var localOriginalMousePoint:Point = invMatrix.transformPoint( containerOriginalMousePoint );
+			// The point where the mouse is currently in local coordinates
+			var localMousePoint:Point = invMatrix.transformPoint( containerMousePoint );
+			
+			// How far along the X axis (in local coordinates) has the mouse been moved?  This is the amount the user has tried to resize the object
+			var resizeDistance:Number = localMousePoint.x - localOriginalMousePoint.x;
+			
+			// So our new width is the original width plus that resize amount
+			translation.width +=  resizeDistance;
+			
+			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+			var translationp:Point = matrix.transformPoint( new Point(0,0) );
+			
+			translation.x +=  translationp.x;
+			translation.y +=  translationp.y;
 		}
+		
+		protected function applyResizeDown( event:MouseEvent, translation:DragGeometry ) : void
+		{
+			var containerOriginalMousePoint:Point = container.globalToLocal(new Point( mouseDownPoint.x, mouseDownPoint.y ));		
+			var containerMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
+			
+			// "local coordinates" = the coordinate system that is relative to the piece that moves around.
+			
+			// matrix describes the current rotation and helps us to go from container to local coordinates 
+			var matrix:Matrix = new Matrix();
+			matrix.rotate( toRadians( originalGeometry.rotation ) );
+			// The inverse matrix helps us to go from local to container coordinates
+			var invMatrix:Matrix = matrix.clone();
+			invMatrix.invert();
+			
+			// The point where we pressed the mouse down in local coordinates
+			var localOriginalMousePoint:Point = invMatrix.transformPoint( containerOriginalMousePoint );
+			// The point where the mouse is currently in local coordinates
+			var localMousePoint:Point = invMatrix.transformPoint( containerMousePoint );
+			
+			// How far along the X axis (in local coordinates) has the mouse been moved?  This is the amount the user has tried to resize the object
+			var resizeDistance:Number = localMousePoint.y - localOriginalMousePoint.y;
+			
+			// So our new width is the original width plus that resize amount
+			translation.height +=  resizeDistance;
+			
+			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+			var translationp:Point = matrix.transformPoint( new Point(0,0) );
+			
+			translation.x +=  translationp.x;
+			translation.y +=  translationp.y;
+		}
+		
+		protected function applyResizeLeft( event:MouseEvent, translation:DragGeometry ) : void
+		{
+			var containerOriginalMousePoint:Point = container.globalToLocal(new Point( mouseDownPoint.x, mouseDownPoint.y ));		
+			var containerMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
+			
+			// "local coordinates" = the coordinate system that is relative to the piece that moves around.
+			
+			// matrix describes the current rotation and helps us to go from container to local coordinates 
+			var matrix:Matrix = new Matrix();
+			matrix.rotate( toRadians( originalGeometry.rotation ) );
+			// The inverse matrix helps us to go from local to container coordinates
+			var invMatrix:Matrix = matrix.clone();
+			invMatrix.invert();
+			
+			// The point where we pressed the mouse down in local coordinates
+			var localOriginalMousePoint:Point = invMatrix.transformPoint( containerOriginalMousePoint );
+			// The point where the mouse is currently in local coordinates
+			var localMousePoint:Point = invMatrix.transformPoint( containerMousePoint );
+			
+			// How far along the X axis (in local coordinates) has the mouse been moved?  This is the amount the user has tried to resize the object
+			var resizeDistance:Number = localOriginalMousePoint.x - localMousePoint.x ;
+			
+			// So our new width is the original width plus that resize amount
+			translation.width +=  resizeDistance;
+			
+			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+			var translationp:Point = matrix.transformPoint( new Point(-resizeDistance,0) );
+			
+			translation.x +=  translationp.x;
+			translation.y +=  translationp.y;
+		}
+		
+		protected function applyResizeUp( event:MouseEvent, translation:DragGeometry ) : void
+		{
+			var containerOriginalMousePoint:Point = container.globalToLocal(new Point( mouseDownPoint.x, mouseDownPoint.y ));		
+			var containerMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
+			
+			// "local coordinates" = the coordinate system that is relative to the piece that moves around.
+			
+			// matrix describes the current rotation and helps us to go from container to local coordinates 
+			var matrix:Matrix = new Matrix();
+			matrix.rotate( toRadians( originalGeometry.rotation ) );
+			// The inverse matrix helps us to go from local to container coordinates
+			var invMatrix:Matrix = matrix.clone();
+			invMatrix.invert();
+			
+			// The point where we pressed the mouse down in local coordinates
+			var localOriginalMousePoint:Point = invMatrix.transformPoint( containerOriginalMousePoint );
+			// The point where the mouse is currently in local coordinates
+			var localMousePoint:Point = invMatrix.transformPoint( containerMousePoint );
+			
+			// How far along the Y axis (in local coordinates) has the mouse been moved?  This is the amount the user has tried to resize the object
+			var resizeDistance:Number = localOriginalMousePoint.y - localMousePoint.y ;
+			
+			// So our new width is the original width plus that resize amount
+			translation.height +=  resizeDistance;
+			
+			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+			var translationp:Point = matrix.transformPoint( new Point(0, -resizeDistance) );
+			
+			translation.x += translationp.x;
+			translation.y += translationp.y;
+		}		
 		
 		protected function handleSelection( event : MouseEvent ) : void
 		{
@@ -256,8 +393,9 @@ package com.roguedevelopment.objecthandles
 		protected function handleBeginDrag( event : MouseEvent ) : void
 		{
 			isDragging = true;	
-			mouseDownPoint = new Point( event.stageX, event.stageY );
-			originalGeometry = selectionManager.getGeometry();			
+			mouseDownPoint = new Point( event.stageX, event.stageY );			
+			originalGeometry = selectionManager.getGeometry();
+			mouseDownRotation = originalGeometry.rotation + getAngle(event.stageX, event.stageY);			
 		}
 		
 		protected function setupHandles( model:Object ) : void
@@ -302,12 +440,38 @@ package com.roguedevelopment.objecthandles
 		protected function updateHandlePositions( model:Object ) : void
 		{
 			var h:Array = handles[model]
+			
 			if( ! h ) { return; }
 			for each ( var handle:Handle in h )
-			{
-				handle.x = model.x + (model.width * handle.descriptor.percentageOffset.x / 100) - Math.floor(handle.width / 2) + handle.descriptor.offset.x;
-				handle.y = model.y + (model.height * handle.descriptor.percentageOffset.y / 100) - Math.floor(handle.height / 2) + handle.descriptor.offset.y;
+			{						
+				if( model.hasOwnProperty("rotation") )
+				{
+					var m:Matrix = new Matrix(	1, // first four form partial identity matrix
+												0, 
+												1, 
+					 							0, 
+												(model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x, // The tX 
+					 							(model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y); // the tY 
+					m.rotate( toRadians( model.rotation ) );
+					var p:Point = m.transformPoint( zero ); 				 							
+					handle.x = p.x + model.x - Math.floor(handle.width / 2);
+					handle.y = p.y + model.y - Math.floor(handle.height / 2);
+				}
+				else
+				{
+					handle.x = p.x + model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x;
+					handle.y = p.y + model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y;
+				}
 			}	
+		}
+		
+		protected static function toRadians( degrees:Number ) :Number
+		{
+			return degrees * Math.PI / 180;
+		}
+		protected static function toDegrees( radians:Number ) :Number
+		{
+			return radians *  180 / Math.PI;
 		}
 		
 		protected function connectHandleEvents( handle:Handle , descriptor:HandleDescription) : void
@@ -370,5 +534,17 @@ package com.roguedevelopment.objecthandles
 			delete handles[model]; 
 			
 		}
+		
+		/* added by greg */
+		// return the rotated point coordinates
+		// help from http://board.flashkit.com/board/showthread.php?t=775357		
+		public function getRotatedRectPoint( angle:Number, point:Point, rotationPoint:Point = null):Point {
+				    var ix:Number = (rotationPoint) ? rotationPoint.x : 0;
+				    var iy:Number = (rotationPoint) ? rotationPoint.y : 0;
+				    var m:Matrix = new Matrix( 1,0,0,1, point.x - ix, point.y - iy);
+				    m.rotate(angle);
+				    return new Point( m.tx + ix, m.ty + iy);
+				}
+		 /* end added */		
 	}
 }

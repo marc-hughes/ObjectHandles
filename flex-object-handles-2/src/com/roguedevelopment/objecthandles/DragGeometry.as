@@ -4,11 +4,11 @@ package com.roguedevelopment.objecthandles
 	
 	public class DragGeometry
 	{
-		public var x:Number;
-		public var y:Number;
-		public var width:Number;
-		public var height:Number;
-		public var rotation:Number;
+		public var x:Number=0;
+		public var y:Number=0;
+		public var width:Number=0;
+		public var height:Number=0;
+		public var rotation:Number=0;
 
 		public function clone() : DragGeometry
 		{

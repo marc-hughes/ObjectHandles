@@ -23,6 +23,7 @@ package com.roguedevelopment.objecthandles.example
 			{
 				case "x": x = event.newValue as Number; break;
 				case "y": y = event.newValue as Number; break;
+				case "rotation": rotation = event.newValue as Number; break;
 				case "width":  
 				case "height": break;
 				default: return;

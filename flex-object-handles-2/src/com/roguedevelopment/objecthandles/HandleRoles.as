@@ -17,28 +17,28 @@ package com.roguedevelopment.objecthandles
 		
 		public static function isResizeUp( val:uint ) : Boolean
 		{
-			return (val & RESIZE_UP) == val;
+			return (val & RESIZE_UP) == RESIZE_UP;
 		}
 		public static function isResizeDown( val:uint ) : Boolean
 		{
-			return (val & RESIZE_DOWN) == val;
+			return (val & RESIZE_DOWN) == RESIZE_DOWN;
 		}
 		public static function isResizeLeft( val:uint ) : Boolean
 		{
-			return (val & RESIZE_LEFT) == val;
+			return (val & RESIZE_LEFT) == RESIZE_LEFT;
 		}
 		public static function isResizeRight( val:uint ) : Boolean
 		{
-			return (val & RESIZE_RIGHT) == val;
+			return (val & RESIZE_RIGHT) == RESIZE_RIGHT;
 		}
 		public static function isRotate( val:uint ) : Boolean
 		{
-			return (val & ROTATE) == val;
+			return (val & ROTATE) == ROTATE;
 		}
 		
 		public static function isMove( val:uint ) : Boolean
 		{
-			return (val & MOVE) == val;
+			return (val & MOVE) == MOVE;
 		}
 	}
 }

@@ -52,12 +52,14 @@
 				
 				
 				objectHandles.registerComponent(testButton,testButton);
+				objectHandles.registerComponent(textarea,textarea);
 			}
 		]]>
 	</mx:Script>
 	
 	<mx:Canvas id="mainCanvas" right="10" left="10" top="10" bottom="10" backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2">
 		<mx:Button x="204" y="483" label="Button" width="99" height="52" id="testButton"/>
+		<mx:TextArea x="204" y="550" width="100" height="25" id="textarea" />
 	</mx:Canvas>
 	
 </mx:Application>
