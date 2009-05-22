@@ -172,38 +172,34 @@ package com.roguedevelopment.objecthandles
 			if( HandleRoles.isMove( currentDragRole ) )
 			{
 				applyMovement( event, translation );
+				applyConstraints(translation, currentDragRole );
 			}
 			
 			if( HandleRoles.isResizeLeft( currentDragRole ) )
 			{
-				applyResizeLeft( event, translation );
+				applyResizeLeft( event, translation );				
 			}
 			
 			if( HandleRoles.isResizeUp( currentDragRole) )
 			{
-				applyResizeUp( event, translation );
+				applyResizeUp( event, translation );				
 			}
 			
 			if( HandleRoles.isResizeRight( currentDragRole ) )
 			{
-				applyResizeRight( event, translation );
+				applyResizeRight( event, translation );				
 			}
 
 			if( HandleRoles.isResizeDown( currentDragRole ) )
 			{
-				applyResizeDown( event, translation );			
+				applyResizeDown( event, translation );						
 			}
 			
 			if( HandleRoles.isRotate( currentDragRole ) )
 			{
-				applyRotate( event, translation );
+				applyRotate( event, translation );				
 			}
 			
-			
-			for each ( var constraint:IConstraint in constraints )
-			{
-				constraint.applyConstraint( originalGeometry, translation, currentDragRole );
-			}						
 			
 			if( selectionManager.currentlySelected.length == 1 )
 			{
@@ -227,6 +223,13 @@ package com.roguedevelopment.objecthandles
 			event.updateAfterEvent();				
 		}
 		
+		protected function applyConstraints(translation:DragGeometry, currentDragRole:uint):void
+		{
+			for each ( var constraint:IConstraint in constraints )
+			{
+				constraint.applyConstraint( originalGeometry, translation, currentDragRole );
+			}
+		}
 		protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
 		{
              proposed.rotation = Math.round(originalGeometry.rotation - mouseDownRotation + getAngle(event.stageX, event.stageY));       
@@ -278,6 +281,8 @@ package com.roguedevelopment.objecthandles
 			// So our new width is the original width plus that resize amount
 			translation.width +=  resizeDistance;
 			
+			applyConstraints(translation, currentDragRole );
+			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
 			var translationp:Point = matrix.transformPoint( new Point(0,0) );
 			
@@ -309,6 +314,8 @@ package com.roguedevelopment.objecthandles
 			
 			// So our new width is the original width plus that resize amount
 			translation.height +=  resizeDistance;
+			
+			applyConstraints(translation, currentDragRole );
 			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
 			var translationp:Point = matrix.transformPoint( new Point(0,0) );
@@ -342,8 +349,11 @@ package com.roguedevelopment.objecthandles
 			// So our new width is the original width plus that resize amount
 			translation.width +=  resizeDistance;
 			
+			
+			applyConstraints(translation, currentDragRole );
+			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-			var translationp:Point = matrix.transformPoint( new Point(-resizeDistance,0) );
+			var translationp:Point = matrix.transformPoint( new Point(-translation.width,0) );
 			
 			translation.x +=  translationp.x;
 			translation.y +=  translationp.y;
@@ -374,8 +384,10 @@ package com.roguedevelopment.objecthandles
 			// So our new width is the original width plus that resize amount
 			translation.height +=  resizeDistance;
 			
+			applyConstraints(translation, currentDragRole );
+			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-			var translationp:Point = matrix.transformPoint( new Point(0, -resizeDistance) );
+			var translationp:Point = matrix.transformPoint( new Point(0, -translation.height) );
 			
 			translation.x += translationp.x;
 			translation.y += translationp.y;

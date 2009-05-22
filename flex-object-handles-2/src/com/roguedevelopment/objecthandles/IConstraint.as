@@ -4,6 +4,6 @@ package com.roguedevelopment.objecthandles
 	
 	public interface IConstraint
 	{
-		function applyConstraint( original:DragGeometry, proposed:DragGeometry, resizeHandleRole:uint ) : void;		
+		function applyConstraint( original:DragGeometry, translation:DragGeometry, resizeHandleRole:uint ) : void;		
 	}
 }
