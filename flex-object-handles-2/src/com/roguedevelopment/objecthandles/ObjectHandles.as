@@ -79,6 +79,8 @@ package com.roguedevelopment.objecthandles
 		// Array of unused, visible=false handles
 		protected var handleCache:Array = [];
 		
+		protected var temp:Point = new Point(0,0);
+		
 		protected var isDragging:Boolean = false;
 		protected var currentDragRole:uint = 0;
 		protected var mouseDownPoint:Point;
@@ -115,40 +117,40 @@ package com.roguedevelopment.objecthandles
 			this.selectionManager.addEventListener(SelectionEvent.SELECTION_CLEARED, onSelectionCleared );
 			
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_LEFT, 
-														new Point(0,0) ,
-														new Point(0,0) ) ); 
+														zero ,
+														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_UP ,
 														new Point(50,0) , 
-														new Point(0,0) ) ); 
+														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_RIGHT,
 														new Point(100,0) ,
-														new Point(0,0) ) ); 
+														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_RIGHT,
 														new Point(100,50) , 
-														new Point(0,0) ) ); 
+														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_RIGHT,
 														new Point(100,100) , 
-														new Point(0,0) ) ); 
+														zero ) ); 
 			
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN ,
 														new Point(50,100) ,
-														new Point(0,0) ) ); 
+														zero ) ); 
 			
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_LEFT,
 														new Point(0,100) ,
-														new Point(0,0) ) ); 
+														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_LEFT,
 														new Point(0,50) ,
-														new Point(0,0) ) ); 
+														zero ) ); 
 		
 //			defaultHandles.push( new HandleDescription( HandleRoles.MOVE,
 //														new Point(50,50) , 
-//														new Point(0,0) ) ); 
+//														zero ) ); 
 		
 			defaultHandles.push( new HandleDescription( HandleRoles.ROTATE,
 														new Point(100,50) , 
@@ -322,9 +324,13 @@ package com.roguedevelopment.objecthandles
                 return Math.atan2(mousePos.y - originalGeometry.x, mousePos.x - originalGeometry.y) * 180/Math.PI; 
         }
 		protected function applyMovement( event:MouseEvent, translation:DragGeometry ) : void
-		{
-			var mouseDelta:Point = new Point( event.stageX - mouseDownPoint.x, event.stageY - mouseDownPoint.y );
-			var currentMousePoint:Point = container.globalToLocal( new Point(event.stageX, event.stageY) );
+		{			
+			temp.x = event.stageX;
+			temp.y = event.stageY;
+			var localDown:Point = container.globalToLocal( mouseDownPoint );
+			var current:Point = container.globalToLocal( temp );
+			var mouseDelta:Point = new Point( current.x - localDown.x, current.y - localDown.y );
+			
 			
 			translation.x = mouseDelta.x;
 			translation.y = mouseDelta.y;
@@ -359,7 +365,7 @@ package com.roguedevelopment.objecthandles
 			applyConstraints(translation, currentDragRole );
 			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-			var translationp:Point = matrix.transformPoint( new Point(0,0) );
+			var translationp:Point = matrix.transformPoint( zero );
 			
 			translation.x +=  translationp.x;
 			translation.y +=  translationp.y;
@@ -393,7 +399,7 @@ package com.roguedevelopment.objecthandles
 			applyConstraints(translation, currentDragRole );
 			
 			// Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-			var translationp:Point = matrix.transformPoint( new Point(0,0) );
+			var translationp:Point = matrix.transformPoint( zero );
 			
 			translation.x +=  translationp.x;
 			translation.y +=  translationp.y;
