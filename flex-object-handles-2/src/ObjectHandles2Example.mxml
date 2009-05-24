@@ -21,7 +21,7 @@
 	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}" color="#FFFFFF" fontWeight="bold" fontSize="15">
 	</mx:LinkBar>
 	<mx:ViewStack width="100%" height="100%" id="viewStack" >
-		<example:Example1 label="Example 1"  id="example1"/>
+		<example:Example1 label="Example 1" scaleX="0.8" scaleY="0.8"  id="example1"/>
 		<example:Example2 label="Example 2"/>
 		<example:Example3 label="Example 3"/>
 		<example:Example4 label="Example 4"/>

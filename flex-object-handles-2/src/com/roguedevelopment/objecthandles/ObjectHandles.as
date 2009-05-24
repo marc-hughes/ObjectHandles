@@ -309,19 +309,42 @@ package com.roguedevelopment.objecthandles
 		}
 		protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
 		{
-             proposed.rotation = Math.round(originalGeometry.rotation - mouseDownRotation + getAngle(event.stageX, event.stageY));       
-  		}     
+			var centerRotatedAmount = toRadians(originalGeometry.rotation) - toRadians(mouseDownRotation) + getAngleInRadians(event.stageX, event.stageY);
+			
+			var oldRotationMatrix:Matrix = new Matrix();
+			oldRotationMatrix.rotate( toRadians( originalGeometry.rotation) );
+			var oldCenter:Point = oldRotationMatrix.transformPoint(new Point(originalGeometry.width/2,originalGeometry.height/2));
+//			
+			var newRotationMatrix:Matrix = new Matrix();
+			//newRotationMatrix.rotate( toRadians(originalGeometry.rotation) );
+			newRotationMatrix.translate(-oldCenter.x, -oldCenter.y);//-originalGeometry.width/2,-originalGeometry.height/2);									
+			newRotationMatrix.rotate( centerRotatedAmount );
+			newRotationMatrix.translate(oldCenter.x, oldCenter.y);							
+			var newOffset:Point = newRotationMatrix.transformPoint( zero );
+			
+			
+			proposed.x += newOffset.x;
+			proposed.y += newOffset.y;
+			proposed.rotation = toDegrees(centerRotatedAmount);
+  		}    
   		
-  		 protected function getAngle(x:Number,y:Number):Number
+  		
+ 
+  		
+  		 protected function getAngleInRadians(x:Number,y:Number):Number
   		 {
+  		 	var m:Matrix = new Matrix();
           	var mousePos:Point = container.globalToLocal( new Point(x,y) );
             var angle1:Number;
+            m.rotate( toRadians( originalGeometry.rotation)	 );
+            var originalCenter:Point = m.transformPoint( new Point(originalGeometry.width/2, originalGeometry.height/2) );
+            originalCenter.offset( originalGeometry.x,  originalGeometry.y );
             if( container is Canvas) {
                 var parentCanvas:Canvas = container as Canvas;
-                return Math.atan2((mousePos.y + parentCanvas.verticalScrollPosition) - originalGeometry.y, (mousePos.x + parentCanvas.horizontalScrollPosition) - originalGeometry.x) * 180/Math.PI; 
+                return Math.atan2((mousePos.y + parentCanvas.verticalScrollPosition) - originalCenter.y, (mousePos.x + parentCanvas.horizontalScrollPosition) - originalCenter.x) ; 
             }
             else 
-                return Math.atan2(mousePos.y - originalGeometry.x, mousePos.x - originalGeometry.y) * 180/Math.PI; 
+                return Math.atan2(mousePos.y - originalCenter.x, mousePos.x - originalCenter.y) ; 
         }
 		protected function applyMovement( event:MouseEvent, translation:DragGeometry ) : void
 		{			
@@ -502,7 +525,7 @@ package com.roguedevelopment.objecthandles
 			isDragging = true;	
 			mouseDownPoint = new Point( event.stageX, event.stageY );			
 			originalGeometry = selectionManager.getGeometry();
-			mouseDownRotation = originalGeometry.rotation + getAngle(event.stageX, event.stageY);			
+			mouseDownRotation = originalGeometry.rotation + toDegrees( getAngleInRadians(event.stageX, event.stageY) );			
 		}
 		
 		protected function setupHandles( model:Object ) : void
