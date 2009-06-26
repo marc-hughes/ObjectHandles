@@ -42,19 +42,26 @@ package com.roguedevelopment.objecthandles
 {
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.ui.Keyboard;
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
 	import mx.core.ClassFactory;
 	import mx.core.Container;
 	import mx.core.IFactory;
+	import mx.events.PropertyChangeEvent;
 	import mx.events.ScrollEvent;
-	
-	public class ObjectHandles
+
+    [Event(name="objectMoved",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+    [Event(name="objectResized",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+    [Event(name="objectRotated",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	public class ObjectHandles extends EventDispatcher
 	{
 		protected const zero:Point = new Point(0,0);
 		
@@ -88,15 +95,20 @@ package com.roguedevelopment.objecthandles
 		protected var originalGeometry:DragGeometry;
 		
 		public var constraints:Array = [];
+		
+   	   //used to remember object changes so
+       //events can be fired when the changes are complete
+       private var isMoved:Boolean = false;
+       private var isResized:Boolean = false;
+       private var isRotated:Boolean = false;
 			
 		public function ObjectHandles(  container:Sprite , 
 										selectionManager:ObjectHandlesSelectionManager = null, 
 										handleFactory:IFactory = null)
 		{		
 			this.container = container;
-			container.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
+			
 			//container.addEventListener(MouseEvent.ROLL_OUT, onContainerRollOut );
-			container.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
 			container.addEventListener( ScrollEvent.SCROLL, onContainerScroll );
 			
 			
@@ -161,12 +173,31 @@ package com.roguedevelopment.objecthandles
 		public function registerComponent( dataModel:Object, visualDisplay:EventDispatcher , handleDescriptions:Array = null) : void
 		{
 			visualDisplay.addEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown, false, 0, true );
+			visualDisplay.addEventListener( SelectionEvent.SELECTED, handleSelection );
+			visualDisplay.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+			dataModel.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
 			models[visualDisplay] = dataModel;
 			visuals[dataModel] = visualDisplay;		
 			if( handleDescriptions )
 			{
 				handleDefinitions[ dataModel ] = handleDescriptions;
 			}				
+		}
+		
+		protected function onKeyDown(event:KeyboardEvent):void
+		{
+			var t:DragGeometry = new DragGeometry();
+			switch(event.keyCode )
+			{
+				case Keyboard.UP : t.y --; break;
+				case Keyboard.DOWN : t.y ++; break;
+				case Keyboard.RIGHT : t.x ++; break;
+				case Keyboard.LEFT : t.x --; break;				
+				default:return; 
+			}
+			
+			applyConstraints( t, HandleRoles.MOVE );
+			applyTranslation( t );
 		}
 		
 		/**
@@ -185,6 +216,22 @@ package com.roguedevelopment.objecthandles
 		public function unregisterComponent( visualDisplay:EventDispatcher ) : void
 		{
 			visualDisplay.removeEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown);
+			visualDisplay.removeEventListener( SelectionEvent.SELECTED, handleSelection );
+			visualDisplay.removeEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+			var dataModel:Object = findModel(visualDisplay as DisplayObject);
+			dataModel.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
+		}
+		
+		protected function onModelChange(event:PropertyChangeEvent):void
+		{
+			switch( event.property )
+			{
+				case "x":
+				case "y":
+				case "width":
+				case "height":
+				case "rotation": updateHandlePositions(event.target);
+			}
 		}
 		
 		protected function onSelectionAdded( event:SelectionEvent ) : void
@@ -216,6 +263,15 @@ package com.roguedevelopment.objecthandles
 		protected function onComponentMouseDown(event:MouseEvent):void
 		{			
 			handleSelection( event );
+			
+			container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
+			container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
+
+			try
+			{
+			  event.target.setFocus();
+			}catch(e:Error){}
+			
 			var model:Object = findModel( event.target as DisplayObject);
 			if( ! hasMovementHandle(model) )
 			{
@@ -229,11 +285,29 @@ package com.roguedevelopment.objecthandles
 			isDragging = false;	
 		}
 		
-		protected function onContainerMouseUp( event:MouseEvent ) : void
-		{
-			isDragging = false;
-		}
 		
+		protected function onContainerMouseUp( event:MouseEvent ) : void
+        {
+		   if (isMoved)
+		   {
+		   		dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_MOVED, true));
+		   }
+		   else if (isResized)
+		   {
+		   		dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_RESIZED, true));
+		   }
+		   else if (isRotated)
+		   {
+		   		dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_ROTATED, true));
+		   }
+		   
+		   container.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
+		   container.stage.removeEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
+		
+		   isDragging = false;
+		}
+               
+	
 		protected function onContainerScroll(event:ScrollEvent):void
 		{
 			for each (var model:Object in models )
@@ -248,38 +322,50 @@ package com.roguedevelopment.objecthandles
 			
 			if( HandleRoles.isMove( currentDragRole ) )
 			{
+				isMoved = true;
 				applyMovement( event, translation );
 				applyConstraints(translation, currentDragRole );
 			}
 			
 			if( HandleRoles.isResizeLeft( currentDragRole ) )
 			{
+				isResized = true;
 				applyResizeLeft( event, translation );				
 			}
 			
 			if( HandleRoles.isResizeUp( currentDragRole) )
 			{
+				isResized = true;
 				applyResizeUp( event, translation );				
 			}
 			
 			if( HandleRoles.isResizeRight( currentDragRole ) )
 			{
+				isResized = true;
 				applyResizeRight( event, translation );				
 			}
 
 			if( HandleRoles.isResizeDown( currentDragRole ) )
 			{
+				isResized = true;
 				applyResizeDown( event, translation );						
 			}
 			
 			if( HandleRoles.isRotate( currentDragRole ) )
 			{
+				isRotated = true;
 				applyRotate( event, translation );				
 			}
 			
+			applyTranslation( translation );			
 			
+			event.updateAfterEvent();				
+		}
+		
+		protected function applyTranslation( translation:DragGeometry) : void
+		{
 			if( selectionManager.currentlySelected.length == 1 )
-			{
+			{				
 				var current:Object = selectionManager.currentlySelected[0];
 				
 				if( current.hasOwnProperty("x") ) current.x = translation.x + originalGeometry.x;
@@ -295,9 +381,7 @@ package com.roguedevelopment.objecthandles
 			{
 				// todo: handle multiple selects
 			}
-			
-			
-			event.updateAfterEvent();				
+
 		}
 		
 		protected function applyConstraints(translation:DragGeometry, currentDragRole:uint):void
@@ -309,7 +393,7 @@ package com.roguedevelopment.objecthandles
 		}
 		protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
 		{
-			var centerRotatedAmount = toRadians(originalGeometry.rotation) - toRadians(mouseDownRotation) + getAngleInRadians(event.stageX, event.stageY);
+			var centerRotatedAmount:Number = toRadians(originalGeometry.rotation) - toRadians(mouseDownRotation) + getAngleInRadians(event.stageX, event.stageY);
 			
 			var oldRotationMatrix:Matrix = new Matrix();
 			oldRotationMatrix.rotate( toRadians( originalGeometry.rotation) );
@@ -510,7 +594,7 @@ package com.roguedevelopment.objecthandles
 			return model;
 		}
 		
-		protected function handleSelection( event : MouseEvent ) : void
+		public function handleSelection( event : Event ) : void
 		{
 			var model:Object = findModel( event.target as DisplayObject );
 			
@@ -634,6 +718,10 @@ package com.roguedevelopment.objecthandles
 			var handle:Handle = event.target as Handle;
 			if( ! handle ) { return; }
 			
+			
+			container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
+			container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
+
 			currentDragRole = handle.descriptor.role;
 			handleBeginDrag(event);
 		}

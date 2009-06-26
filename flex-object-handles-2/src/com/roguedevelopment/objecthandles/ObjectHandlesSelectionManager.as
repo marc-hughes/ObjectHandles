@@ -51,6 +51,7 @@ package com.roguedevelopment.objecthandles
 
 		public function setSelected( model:Object ) : void
 		{
+			
 			clearSelection();			
 			addToSelected( model );			
 		}

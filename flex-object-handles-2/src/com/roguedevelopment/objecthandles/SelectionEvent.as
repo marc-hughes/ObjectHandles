@@ -33,6 +33,7 @@ package com.roguedevelopment.objecthandles
 		public static const REMOVED_FROM_SELECTION:String = "removedFromSelection";
 		public static const SELECTION_CLEARED:String = "selectionCleared";
 		public static const ADDED_TO_SELECTION:String = "addedToSelection";
+		public static const SELECTED:String = "selected";
 		
 		public var targets:Array = [];
 		

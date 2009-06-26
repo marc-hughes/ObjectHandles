@@ -38,6 +38,7 @@
 				>
 		<mx:Script>
 		<![CDATA[
+			import com.roguedevelopment.objecthandles.ObjectChangedEvent;
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
 			import com.roguedevelopment.objecthandles.Handle;
@@ -76,7 +77,14 @@
 				constraint.maxWidth = 500;
 				constraint.minHeight = 20;
 				constraint.maxHeight = 200;
+				
+				objectHandles.addEventListener(ObjectChangedEvent.OBJECT_MOVED, onObjectMoved );
 				objectHandles.constraints.push( constraint );							
+			}
+			
+			protected function onObjectMoved(event:ObjectChangedEvent):void
+			{
+				trace("Something was moved!");
 			}
 		]]>
 	</mx:Script>				
