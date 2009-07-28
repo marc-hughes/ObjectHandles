@@ -25,20 +25,26 @@
  **/
 package com.roguedevelopment.objecthandles
 {
-	import flash.geom.Point;
-	
-	public class HandleDescription
-	{		
-		public var role:uint;
-		public var percentageOffset:Point;
-		public var offset:Point;
-		
-		
-		public function HandleDescription(role:uint, percentageOffset:Point, offset:Point ) 
-		{
-			this.role = role;
-			this.percentageOffset = percentageOffset;
-			this.offset = offset;
-		}
-	}
+    import flash.geom.Point;
+    
+    import mx.core.IFactory;
+    
+    public class HandleDescription
+    {       
+        public var role:uint;
+        public var percentageOffset:Point;
+        public var offset:Point;
+        public var handleFactory:IFactory;
+        public var constraint:IFactory;
+        
+        
+        public function HandleDescription(role:uint, percentageOffset:Point, offset:Point, handleFactory:IFactory = null, constraint:IFactory = null ) 
+        {
+            this.role = role;
+            this.percentageOffset = percentageOffset;
+            this.offset = offset;
+            this.handleFactory = handleFactory;
+            this.constraint = constraint;
+        }
+    }
 }
