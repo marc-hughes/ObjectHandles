@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/**
+ *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.html
+ * 
+ *  Copyright (c) 2009 Marc Hughes 
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a 
+ *  copy of this software and associated documentation files (the "Software"), 
+ *  to deal in the Software without restriction, including without limitation 
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ *  and/or sell copies of the Software, and to permit persons to whom the Software 
+ *  is furnished to do so, subject to the following conditions:
+ * 
+ *  The above copyright notice and this permission notice shall be included in all 
+ *  copies or substantial portions of the Software.
+ * 
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+ *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+ *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ * 
+ *  See README for more information.
+ * 
+ **/
+-->
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	implements="com.roguedevelopment.objecthandles.IHandle" 
+	rollOver="onRollOver(event)" 
+	rollOut="onRollOut(event)" 
+	xmlns:degrafa="http://www.degrafa.com/2007">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.HandleRoles;
+			import com.roguedevelopment.objecthandles.HandleDefinitions;
+			import com.roguedevelopment.objecthandles.HandleDescription;
+			
+			[Bindable]
+			private var _descriptor:HandleDescription;		
+			private var _targetModel:Object;
+			
+			[Bindable]
+			protected var isOver:Boolean = false;
+			[Bindable]
+			private var angleOffset:Number = 0;
+			
+			public function get handleDescriptor():HandleDescription
+			{
+				return _descriptor;
+			}
+			public function set handleDescriptor(value:HandleDescription):void
+			{
+				_descriptor = value;
+				switch(_descriptor.role)
+				{
+					case HandleRoles.RESIZE_DOWN:
+						angleOffset = 180; //point triangle down
+					break;
+					case HandleRoles.RESIZE_LEFT:
+						angleOffset = - 90; //point triangle left
+					break;
+					case HandleRoles.RESIZE_RIGHT:
+						angleOffset = 90; //point triangle right
+					break;
+					case HandleRoles.RESIZE_UP | HandleRoles.RESIZE_RIGHT:
+						angleOffset = 45; //point triangle up and right
+					break;
+					case HandleRoles.RESIZE_UP | HandleRoles.RESIZE_LEFT:
+						angleOffset = -45; //point triangle up and right
+					break;
+					case HandleRoles.RESIZE_DOWN | HandleRoles.RESIZE_RIGHT:
+						angleOffset = 135; //point triangle down and right
+					break;
+					case HandleRoles.RESIZE_DOWN | HandleRoles.RESIZE_LEFT:
+						angleOffset = -135; //point triangle down and left
+					break;
+				}
+			}
+			
+			[Bindable]
+			public function get targetModel():Object
+			{
+				return _targetModel;
+			}
+			public function set targetModel(value:Object):void
+			{
+				_targetModel = value;
+			}
+			
+			protected function onRollOut( event : MouseEvent ) : void
+			{
+				isOver = false;
+				//no need to redraw() data binding will invalidate the display for us
+				//redraw();
+			}
+			protected function onRollOver( event:MouseEvent):void
+			{
+				isOver = true;
+				//no need to redraw() data binding will invalidate the display for us
+				//redraw();
+			}
+			
+			public function redraw() : void
+			{
+				invalidateDisplayList();
+			}
+		]]>
+	</mx:Script>
+		
+	<degrafa:GeometryComposition graphicsTarget="{[this]}">
+		<degrafa:fills>
+			<degrafa:SolidFill id="theFill" alpha="0.5" color="{isOver?0x009900:0x51ffee}"/>
+		</degrafa:fills>
+
+		<degrafa:strokes>
+			<degrafa:SolidStroke id="theStroke" alpha="0.5" color="{isOver?0x006600:0x000066}"/>
+		</degrafa:strokes>
+
+		<degrafa:Polygon fill="{theFill}" stroke="{theStroke}" visible="{(_descriptor.role &amp; 0xF) > 0 ? true : false}">
+			<degrafa:points>
+				<degrafa:GraphicPoint x="-5" y="5"/>
+				<degrafa:GraphicPoint x="5" y="5"/>
+				<degrafa:GraphicPoint x="0" y="-5"/>
+			</degrafa:points>
+			<degrafa:transform>
+				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
+			</degrafa:transform>
+		</degrafa:Polygon>
+
+		<degrafa:Polygon fill="{theFill}" stroke="{theStroke}" visible="{(_descriptor.role &amp; HandleRoles.MOVE) > 0 ? true : false}">
+			<degrafa:points>
+				<degrafa:GraphicPoint x="-1" y="-1"/>
+				<degrafa:GraphicPoint x="-1" y="-7"/>
+				<degrafa:GraphicPoint x="-3" y="-7"/>
+				<degrafa:GraphicPoint x="0" y="-10"/>
+				<degrafa:GraphicPoint x="3" y="-7"/>
+				<degrafa:GraphicPoint x="1" y="-7"/>
+				<degrafa:GraphicPoint x="1" y="-1"/>
+				
+				<degrafa:GraphicPoint x="7" y="-1"/>
+				<degrafa:GraphicPoint x="7" y="-3"/>
+				<degrafa:GraphicPoint x="10" y="0"/>
+				<degrafa:GraphicPoint x="7" y="3"/>
+				<degrafa:GraphicPoint x="7" y="1"/>
+				<degrafa:GraphicPoint x="1" y="1"/>
+				
+				<degrafa:GraphicPoint x="1" y="7"/>
+				<degrafa:GraphicPoint x="3" y="7"/>
+				<degrafa:GraphicPoint x="0" y="10"/>
+				<degrafa:GraphicPoint x="-3" y="7"/>
+				<degrafa:GraphicPoint x="-1" y="7"/>
+				<degrafa:GraphicPoint x="-1" y="1"/>
+				
+				<degrafa:GraphicPoint x="-7" y="1"/>
+				<degrafa:GraphicPoint x="-7" y="3"/>
+				<degrafa:GraphicPoint x="-10" y="0"/>
+				<degrafa:GraphicPoint x="-7" y="-3"/>
+				<degrafa:GraphicPoint x="-7" y="-1"/>
+			</degrafa:points>
+			<degrafa:transform>
+				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
+			</degrafa:transform>
+		</degrafa:Polygon>
+		
+		<degrafa:Polygon fill="{theFill}" stroke="{theStroke}" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}">
+			<degrafa:points>
+				<degrafa:GraphicPoint x="1" y="-4"/>
+				<degrafa:GraphicPoint x="2" y="-4"/>
+				<degrafa:GraphicPoint x="5" y="-1"/>
+				<degrafa:GraphicPoint x="5" y="2"/>
+				<degrafa:GraphicPoint x="3" y="4"/>
+				<degrafa:GraphicPoint x="4" y="5"/>
+				<degrafa:GraphicPoint x="1" y="5"/>
+				<degrafa:GraphicPoint x="1" y="2"/>
+				<degrafa:GraphicPoint x="2" y="3"/>
+				<degrafa:GraphicPoint x="4" y="1"/>
+				<degrafa:GraphicPoint x="4" y="0"/>
+				<degrafa:GraphicPoint x="1" y="-3"/>
+			</degrafa:points>
+			<degrafa:transform>
+				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
+			</degrafa:transform>
+		</degrafa:Polygon>
+		<degrafa:Polygon fill="{theFill}" stroke="{theStroke}" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}">
+			<degrafa:points>
+				<degrafa:GraphicPoint x="-1" y="4"/>
+				<degrafa:GraphicPoint x="-2" y="4"/>
+				<degrafa:GraphicPoint x="-5" y="1"/>
+				<degrafa:GraphicPoint x="-5" y="-2"/>
+				<degrafa:GraphicPoint x="-3" y="-4"/>
+				<degrafa:GraphicPoint x="-4" y="-5"/>
+				<degrafa:GraphicPoint x="-1" y="-5"/>
+				<degrafa:GraphicPoint x="-1" y="-2"/>
+				<degrafa:GraphicPoint x="-2" y="-3"/>
+				<degrafa:GraphicPoint x="-4" y="-1"/>
+				<degrafa:GraphicPoint x="-4" y="0"/>
+				<degrafa:GraphicPoint x="-1" y="3"/>
+			</degrafa:points>
+			<degrafa:transform>
+				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
+			</degrafa:transform>
+		</degrafa:Polygon>
+		<degrafa:Circle radius="5" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}">
+			<degrafa:fill>
+				<degrafa:SolidFill alpha="0" color="#FFFFFF"/>
+			</degrafa:fill>
+		</degrafa:Circle>
+	</degrafa:GeometryComposition>
+	
+</mx:Canvas>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/**
+ *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.html
+ * 
+ *  Copyright (c) 2009 Marc Hughes 
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a 
+ *  copy of this software and associated documentation files (the "Software"), 
+ *  to deal in the Software without restriction, including without limitation 
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ *  and/or sell copies of the Software, and to permit persons to whom the Software 
+ *  is furnished to do so, subject to the following conditions:
+ * 
+ *  The above copyright notice and this permission notice shall be included in all 
+ *  copies or substantial portions of the Software.
+ * 
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+ *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+ *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ * 
+ *  See README for more information.
+ * 
+ **/
+-->
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="100%" height="100%" 
+				xmlns:example="com.roguedevelopment.objecthandles.example.*"
+				horizontalScrollPolicy="on"
+				verticalScrollPolicy="on"
+				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
+				creationComplete="init()"
+				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
+				
+				>
+		<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.HandleRoles;
+			import com.roguedevelopment.objecthandles.HandleDescription;
+			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
+			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
+			import com.roguedevelopment.objecthandles.Handle;
+			import com.roguedevelopment.objecthandles.ObjectHandles;
+			import mx.effects.Tween;
+			import mx.effects.Move;
+			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
+			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
+			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
+			
+			protected var objectHandles:ObjectHandles;
+			
+			[Bindable] protected var flexModel1:SimpleDataModel;
+			[Bindable] protected var flexModel2:SimpleDataModel;
+			
+			protected function init() : void
+			{
+				objectHandles = new ObjectHandles( this , null, new ClassFactory(DegrafaHandle));
+				objectHandles.defaultHandles.push( new HandleDescription( HandleRoles.MOVE,
+															new Point(50,50) ,
+															new Point(0,0) ) );
+				
+				flexModel1 = new SimpleDataModel();
+				flexModel1.x = 50;
+				flexModel1.y = 150;
+				flexModel1.width = 50;
+				flexModel1.height = 50;
+				objectHandles.registerComponent( flexModel1, flexShape1 );
+
+				flexModel2 = new SimpleDataModel();
+				flexModel2.x = 150;
+				flexModel2.y = 150;
+				flexModel2.width = 50;
+				flexModel2.height = 50;
+				objectHandles.registerComponent( flexModel2, flexShape2 );
+				
+				var constraint:SizeConstraint = new SizeConstraint();
+				constraint.minWidth = 20;
+				constraint.maxWidth = 500;
+				constraint.minHeight = 20;
+				constraint.maxHeight = 200;
+				objectHandles.constraints.push( constraint );							
+			}
+		]]>
+	</mx:Script>				
+		<mx:Text selectable="false" text="You can use Degrafa to draw your handles as long as your class implements IHandle" 
+			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+		
+		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />
+		<example:SimpleFlexShape id="flexShape2" model="{flexModel2}" />
+		<mx:Canvas scaleX="0.25" scaleY="0.25" width="1000" height="1000" borderStyle="solid" borderColor="#000000" borderThickness="3" right="-2" top="-2" id="subCanvas">
+				<example:SimpleFlexShape model="{flexModel1}" />
+				<example:SimpleFlexShape model="{flexModel2}" />
+		</mx:Canvas>
+		
+		<mx:Button x="3000" y="3000"/>
+	
+</mx:Canvas>

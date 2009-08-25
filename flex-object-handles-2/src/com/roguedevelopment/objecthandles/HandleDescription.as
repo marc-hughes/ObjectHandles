@@ -31,6 +31,7 @@ package com.roguedevelopment.objecthandles
     
     public class HandleDescription
     {       
+    	[Bindable]
         public var role:uint;
         public var percentageOffset:Point;
         public var offset:Point;

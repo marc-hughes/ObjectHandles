@@ -29,18 +29,35 @@ package com.roguedevelopment.objecthandles
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 
-	public class Handle extends Sprite
+	public class Handle extends Sprite implements IHandle
 	{
-		public var descriptor:HandleDescription;		
-		public var targetModel:Object;
+		private var _descriptor:HandleDescription;		
+		private var _targetModel:Object;
 		protected var isOver:Boolean = false;
+		
+		public function get handleDescriptor():HandleDescription
+		{
+			return _descriptor;
+		}
+		public function set handleDescriptor(value:HandleDescription):void
+		{
+			_descriptor = value;
+		}
+		public function get targetModel():Object
+		{
+			return _targetModel;
+		}
+		public function set targetModel(value:Object):void
+		{
+			_targetModel = value;
+		}
 		
 		public function Handle()
 		{
 			super();
 			addEventListener( MouseEvent.ROLL_OUT, onRollOut );
 			addEventListener( MouseEvent.ROLL_OVER, onRollOver );
-			redraw();
+			//redraw();
 		}
 		
 		protected function onRollOut( event : MouseEvent ) : void
@@ -54,7 +71,7 @@ package com.roguedevelopment.objecthandles
 			redraw();
 		}
 		
-		protected function redraw() : void
+		public function redraw() : void
 		{
 			graphics.clear();
 			if( isOver )

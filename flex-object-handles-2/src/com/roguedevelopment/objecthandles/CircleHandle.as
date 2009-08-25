@@ -9,7 +9,7 @@ package com.roguedevelopment.objecthandles
 			super();
 		}
 	
-		override protected function redraw():void
+		override public function redraw():void
 		{
 			graphics.clear();
 			if( isOver )

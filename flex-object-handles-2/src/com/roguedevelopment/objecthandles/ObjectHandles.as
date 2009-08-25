@@ -29,6 +29,7 @@
  *    Mario Ernst
  *    Aaron Winkler
  *    Gregory Tappero
+ *    Andrew Westberg
  * 
  * -------------------------------------------------------------------------------------------
  * 
@@ -662,21 +663,22 @@ package com.roguedevelopment.objecthandles
                 handles[model] = current;
             }
             // todo: use cached handles for performance.
-            var handle:Handle
+            var handle:IHandle
             
             if (descriptor.handleFactory != null)
             {
-                handle = descriptor.handleFactory.newInstance() as Handle;
+                handle = descriptor.handleFactory.newInstance() as IHandle;
             }
             else
             {
-                handle = handleFactory.newInstance() as Handle;
+                handle = handleFactory.newInstance() as IHandle;
             }
             handle.targetModel = model;
-            handle.descriptor = descriptor;
+            handle.handleDescriptor = descriptor;
             connectHandleEvents( handle , descriptor);
             current.push(handle);
-            addToContainer( handle );                       
+            addToContainer( handle as Sprite);
+            handle.redraw();
         }
         
         protected function getContainerScrollAmount() : Point
@@ -699,7 +701,7 @@ package com.roguedevelopment.objecthandles
             var scroll:Point = getContainerScrollAmount();
             
             if( ! h ) { return; }
-            for each ( var handle:Handle in h )
+            for each ( var handle:IHandle in h )
             {                       
                 if( model.hasOwnProperty("rotation") )
                 {
@@ -707,8 +709,8 @@ package com.roguedevelopment.objecthandles
                                                 0, 
                                                 1, 
                                                 0, 
-                                                (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x, // The tX 
-                                                (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y); // the tY 
+                                                (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x, // The tX 
+                                                (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y); // the tY 
                     m.rotate( toRadians( model.rotation ) );
                     var p:Point = m.transformPoint( zero );                                             
                     handle.x = p.x + model.x - Math.floor(handle.width / 2) - scroll.x;
@@ -716,8 +718,8 @@ package com.roguedevelopment.objecthandles
                 }
                 else
                 {
-                    handle.x =  model.x - Math.floor(handle.width / 2) + (model.width * handle.descriptor.percentageOffset.x / 100)  + handle.descriptor.offset.x - scroll.x;
-                    handle.y =  model.y - Math.floor(handle.height / 2) + (model.height * handle.descriptor.percentageOffset.y / 100)  + handle.descriptor.offset.y - scroll.y;
+                    handle.x =  model.x - Math.floor(handle.width / 2) + (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x - scroll.x;
+                    handle.y =  model.y - Math.floor(handle.height / 2) + (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y - scroll.y;
                 }
             }   
         }
@@ -731,7 +733,7 @@ package com.roguedevelopment.objecthandles
             return radians *  180 / Math.PI;
         }
         
-        protected function connectHandleEvents( handle:Handle , descriptor:HandleDescription) : void
+        protected function connectHandleEvents( handle:IHandle , descriptor:HandleDescription) : void
         {
             handle.addEventListener( MouseEvent.MOUSE_DOWN, onHandleDown );
             
@@ -740,15 +742,15 @@ package com.roguedevelopment.objecthandles
         
         protected function onHandleDown( event:MouseEvent):void
         {
-            var handle:Handle = event.target as Handle;
+            var handle:IHandle = event.target as IHandle;
             if( ! handle ) { return; }
             
             
             container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
             container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
 
-            currentDragRole = handle.descriptor.role;
-            currentHandleConstraint = handle.descriptor.constraint;
+            currentDragRole = handle.handleDescriptor.role;
+            currentHandleConstraint = handle.handleDescriptor.constraint;
             handleBeginDrag(event);
         }
         
@@ -780,7 +782,7 @@ package com.roguedevelopment.objecthandles
         protected function removeHandles( model:Object ) : void
         {
             var currentHandles:Array = handles[model];
-            for each ( var handle:Handle in currentHandles )
+            for each ( var handle:IHandle in currentHandles )
             {               
                 if( handleCache.length <= 10 )
                 {
@@ -789,7 +791,7 @@ package com.roguedevelopment.objecthandles
                 }
                 else
                 {
-                    removeFromContainer( handle );                  
+                    removeFromContainer( handle as Sprite);                  
                 }
             }
             
