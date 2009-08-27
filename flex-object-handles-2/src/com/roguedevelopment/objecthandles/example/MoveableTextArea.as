@@ -1,6 +1,6 @@
 package com.roguedevelopment.objecthandles.example
 {
-	import flash.events.TextEvent;
+	import flash.events.Event;
 	
 	import mx.controls.TextArea;
 	import mx.events.PropertyChangeEvent;
@@ -12,7 +12,7 @@ package com.roguedevelopment.objecthandles.example
 		public function MoveableTextArea()
 		{
 			super();
-			addEventListener(TextEvent.TEXT_INPUT, onTextInput );
+			addEventListener(Event.CHANGE, onTextInput );
 		}
 		
 		public function set model( val:TextDataModel ) : void
@@ -24,7 +24,7 @@ package com.roguedevelopment.objecthandles.example
 			val.addEventListener( PropertyChangeEvent.PROPERTY_CHANGE, onPropertyChange );
 		}
 		
-		protected function onTextInput(event:TextEvent ):void
+		protected function onTextInput(event:Event ):void
 		{
 			if( _model ) { _model.text = text; }
 		}
