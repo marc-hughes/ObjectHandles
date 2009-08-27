@@ -113,6 +113,7 @@
 	<degrafa:GeometryComposition graphicsTarget="{[this]}">
 		<degrafa:fills>
 			<degrafa:SolidFill id="theFill" alpha="0.5" color="{isOver?0x009900:0x51ffee}"/>
+			<degrafa:SolidFill id="invisibleFill" alpha="0" color="#FFFFFF"/>
 		</degrafa:fills>
 
 		<degrafa:strokes>
@@ -165,6 +166,18 @@
 			</degrafa:transform>
 		</degrafa:Polygon>
 		
+		<degrafa:Polygon fill="{invisibleFill}" visible="{(_descriptor.role &amp; HandleRoles.MOVE) > 0 ? true : false}">
+			<degrafa:points>
+				<degrafa:GraphicPoint x="0" y="-10"/>
+				<degrafa:GraphicPoint x="10" y="0"/>
+				<degrafa:GraphicPoint x="0" y="10"/>
+				<degrafa:GraphicPoint x="-10" y="0"/>
+			</degrafa:points>
+			<degrafa:transform>
+				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
+			</degrafa:transform>
+		</degrafa:Polygon>
+
 		<degrafa:Polygon fill="{theFill}" stroke="{theStroke}" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}">
 			<degrafa:points>
 				<degrafa:GraphicPoint x="1" y="-4"/>
@@ -203,11 +216,7 @@
 				<degrafa:RotateTransform angle="{targetModel.rotation + angleOffset}" />
 			</degrafa:transform>
 		</degrafa:Polygon>
-		<degrafa:Circle radius="5" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}">
-			<degrafa:fill>
-				<degrafa:SolidFill alpha="0" color="#FFFFFF"/>
-			</degrafa:fill>
-		</degrafa:Circle>
+		<degrafa:Circle radius="5" fill="{invisibleFill}" visible="{(_descriptor.role &amp; HandleRoles.ROTATE) > 0 ? true : false}"/>
 	</degrafa:GeometryComposition>
 	
 </mx:Canvas>
