@@ -10,14 +10,7 @@
 	creationComplete="init()"
 	xmlns:example="com.roguedevelopment.objecthandles.example.*" viewSourceURL="srcview/index.html">
 
-				
-		<mx:Style>
-			@font-face {
-				    src: local("Verdana");
-	    			fontFamily: myVerdana;
-					}
-	
-		</mx:Style>
+ 
 	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}" color="#FFFFFF" fontWeight="bold" fontSize="15">
 	</mx:LinkBar>
 	<mx:ViewStack width="100%" height="100%" id="viewStack" >
