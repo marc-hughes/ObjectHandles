@@ -1,0 +1,93 @@
+<project name="ObjectHandles" default="deployLocal">
+
+	<!--
+	  to use this build script, you need to create a build.properties to specify some machine-dependent values.  I don't include this in
+	  subversion since it includes my username/password for uploading to google code.
+	  
+		flex3.sdk=/Applications/Adobe\ Flex\ Builder\ 3\ Plug-in/sdks/3.2.0/
+		flex4.sdk=/Applications/Adobe\ Flash\ Builder\ Beta\ 2/sdks/4.0.0/	  
+		gc.username=YOUR USERNAME
+		gc.password=YOUR GOOGLE CODE PASSWORD		
+	-->
+	<property file="build.properties"/>
+	<property file="version.properties"/>
+
+	<target name="clean">
+		
+		<delete>
+			<fileset dir="." includes="ObjectHandles-2.0.*.zip"/>
+			<fileset dir="." includes="ObjectHandles-2.0.*.swc"/>
+		</delete> 
+		
+		<delete dir="tmp_src" />
+	</target>
+
+	<!-- This target builds both version of the swc. -->
+    <target name="build-swc">
+    
+    	<exec executable="${flex3.sdk}bin/compc">
+		    <arg value="-load-config+=swcconfig.xml"/>
+ 	    </exec>
+ 	    
+ 	    <move file="ObjectHandles.swc" toFile="ObjectHandles-2.0.${oh.build.num}_FLEX3.swc" />
+
+    	<exec executable="${flex4.sdk}bin/compc">
+		    <arg value="-load-config+=swcconfig-flex4.xml"/>
+ 	    </exec>
+ 	    
+ 	    <move file="ObjectHandles.swc" toFile="ObjectHandles-2.0.${oh.build.num}_FLEX4.swc" />
+    	
+    </target>
+
+	<target name="package-source">
+    	<mkdir dir="tmp_src"/>
+    	<mkdir dir="tmp_src/ObjectHandles-2.0.${oh.build.num}" />
+    	<copy todir="tmp_src/ObjectHandles-2.0.${oh.build.num}" >
+    		<fileset dir="../">    			
+    			<exclude name="generated**/*"/>
+    			<exclude name="bin-debug**/*"/>
+    			<exclude name="tmp_src**/*"/>    			
+    			<exclude name="deploy/build.properties"/>    			
+    		</fileset>
+    	</copy>
+    	
+    	<exec executable="${flex4.sdk}bin/asdoc">
+    		<arg value="-source-path"/> 
+    		<arg value="../src"/>
+    		<arg value="-doc-sources"/>
+    		<arg value="../src/com"/>
+    		<arg value="-output"/>
+    		<arg value="tmp_src/ObjectHandles-2.0.${oh.build.num}/asdocs"/>
+    		<arg value="-library-path+=../libs"/>
+    		
+    		    		    	 
+    	</exec>
+
+		<zip destfile="ObjectHandles-2.0.${oh.build.num}-src.zip" basedir="tmp_src" />
+		
+
+    		
+	</target>
+
+	<!-- This target copies files to google code in a nice .zip file -->
+    <target name="publish-google-oh" depends="clean, build-swc, package-source" >
+    
+		<taskdef classname="net.bluecow.googlecode.ant.GoogleCodeUploadTask" classpath="ant-googlecode.jar" name="gcupload"/>
+    
+  	
+       	<gcupload username="${gc.username}" password="${gc.password}" projectname="flex-object-handles"
+    			      filename="ObjectHandles-2.0.${oh.build.num}-src.zip" targetfilename="ObjectHandles-2.0.${oh.build.num}-src.zip"
+    				  summary="Object Handles Version 2 distribution, includes source, docs, and precompiled swcs" />
+
+    	
+		<propertyfile file="version.properties" >
+			 <entry default="0001" key="oh.build.num" operation="+" pattern="0000" type="int" />
+		</propertyfile>
+       	
+    </target>
+    
+    
+
+    
+    
+</project>

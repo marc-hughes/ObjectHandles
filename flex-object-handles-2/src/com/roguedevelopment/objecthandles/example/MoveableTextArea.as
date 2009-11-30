@@ -4,7 +4,11 @@ package com.roguedevelopment.objecthandles.example
 	
 	import mx.controls.TextArea;
 	import mx.events.PropertyChangeEvent;
-
+	
+	/** 
+	 * This is an example and not part of the core ObjectHandles library. 
+	 **/
+	
 	public class MoveableTextArea extends TextArea
 	{
 		protected var _model:TextDataModel;

@@ -29,6 +29,13 @@ package com.roguedevelopment.objecthandles.constraints
     import com.roguedevelopment.objecthandles.HandleRoles;
     import com.roguedevelopment.objecthandles.IConstraint;
 
+	
+	/** 
+	 * This is a constraint which causes the resized component to maintain a constant aspect ration.
+	 * 
+	 * NOTE / TODO: Currently, it doesn't work 100% correctly for rotated objects.   
+	 **/
+
     public class MaintainProportionConstraint implements IConstraint
     {
         public function applyConstraint(original:DragGeometry, translation:DragGeometry, resizeHandleRole:uint):void

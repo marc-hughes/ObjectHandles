@@ -26,6 +26,11 @@
  * 
  **/
 -->
+
+<!---
+This is an example and not a part of the core ObjectHandles library.
+-->
+
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="100%" height="100%" 
 				xmlns:example="com.roguedevelopment.objecthandles.example.*"
@@ -42,7 +47,7 @@
 			
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
-			import com.roguedevelopment.objecthandles.Handle;
+			import com.roguedevelopment.objecthandles.SpriteHandle;
 			import com.roguedevelopment.objecthandles.ObjectHandles;
 			import mx.effects.Tween;
 			import mx.effects.Move;

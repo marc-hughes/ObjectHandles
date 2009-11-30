@@ -3,6 +3,11 @@ package com.roguedevelopment.objecthandles.example
 	import com.roguedevelopment.objecthandles.IMoveable;
 	import com.roguedevelopment.objecthandles.IResizeable;
 
+	
+	/** 
+	 * This is an example and not part of the core ObjectHandles library. 
+	 **/
+
 	public class SimpleDataModel implements IResizeable, IMoveable
 	{
 		[Bindable] public var x:Number = 10;

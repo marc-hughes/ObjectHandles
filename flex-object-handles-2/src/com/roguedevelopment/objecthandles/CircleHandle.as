@@ -1,8 +1,12 @@
 package com.roguedevelopment.objecthandles
 {
-	import com.roguedevelopment.objecthandles.Handle;
+	import com.roguedevelopment.objecthandles.SpriteHandle;
 
-	public class CircleHandle extends Handle
+	/**
+	 * A simple circle based handle instead of the square one.  This is more of an example
+	 * on how to do alterntative handles.
+	 **/
+	public class CircleHandle extends SpriteHandle
 	{
 		public function CircleHandle()
 		{

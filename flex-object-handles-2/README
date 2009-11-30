@@ -1,6 +1,84 @@
-This is an experimental branch and not intended for real use 
-yet.  All current documentation, examples, etc. are based on 
-the flex-object-handles tree and not the flex-object-handles-2 
-tree
+***** VERSION 2
+
+This is a Version 2 release of ObjectHandles.  It was a rewrite from scratch with a completely different API.  If
+you're upgrading from a 1.0 release, you may want to look for a download with a "1.0" version number such as: 
+ObjectHandles-1.0.0015-src.zip   	 
+
+Most of the examples and instructions on the website are still targetting version 1
+
+***** SWCs
+
+The easiest way to get started is to grab the appropriate .swc from the the deploy folder, copy that to the
+libs folder of your project, and start using the classes.
+
+***** Examples
+
+Examples can be found in 
+  ObjectHandles2Example.mxml  (A comprehensive set of examples)
+  ObjectHandlesFlex4Example.mxml  (A specialized example showing how to use ObjectHandles in Flex 4)
+Other example classes are in: com.roguedevelopment.objecthandles.examples
+
+***** SUPPORT
+
+For support, please see the google group at: http://groups.google.com/group/objecthandles
+
+The group is the best place for support!
+
+***** Using Object Handles?
+Please tell us about projects using ObjectHandles, we love to see them.  We'd love to list it on our usage page
+http://code.google.com/p/flex-object-handles/wiki/ObjectHandlesUsage
+
+We've had over 75,000 downloads, but only know about a half dozen projects using ObjectHandles.  Please consider letting us 
+know about yours, it really helps to keep us motivated.
+
+***** DOWNLOADS
+
+The latest version of this project can always be downloaded from: http://code.google.com/p/flex-object-handles/downloads/list
 
 
+***** LICENSE
+
+ * 
+ *  Copyright (c) 2009 Marc Hughes 
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a 
+ *  copy of this software and associated documentation files (the "Software"), 
+ *  to deal in the Software without restriction, including without limitation 
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ *  and/or sell copies of the Software, and to permit persons to whom the Software 
+ *  is furnished to do so, subject to the following conditions:
+ * 
+ *  The above copyright notice and this permission notice shall be included in all 
+ *  copies or substantial portions of the Software.
+ * 
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+ *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+ *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ * 
+ * -------------------------------------------------------------------------------------------
+ *  
+ * Contributions by:
+ *    
+ *    Alexander Kludt
+ *    Thomas Jakobi
+ *    Mario Ernst
+ *    Aaron Winkler
+ *    Gregory Tappero
+ *    Andrew Westberg
+ * 
+
+ 
+ 
+****** OTHER SOFTWARE
+
+For one of our examples, we use the Degrafa library which is also licensed under the MIT license.  You can
+read more about that here: http://degrafa.org/
+
+We include the Degrafa library in our libs folder to make building the example easier. You don't not need to
+include this in your project unless you plan on using Degrafa as well.
+
+
+ 

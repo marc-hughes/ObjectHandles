@@ -6,13 +6,14 @@
 	paddingTop="0"
 	paddingRight="10" 
 	backgroundGradientAlphas="[1.0, 1.0]" 
-	backgroundGradientColors="[#616161, #616161]"
+	backgroundGradientColors="[#444444, #616161]"
 	creationComplete="init()"
 	xmlns:example="com.roguedevelopment.objecthandles.example.*" viewSourceURL="srcview/index.html">
 
  
 	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}" color="#FFFFFF" fontWeight="bold" fontSize="15">
 	</mx:LinkBar>
+	
 	<mx:ViewStack width="100%" height="100%" id="viewStack" >
 		<example:Example1 label="Example 1" scaleX="0.8" scaleY="0.8"  id="example1"/>
 		<example:Example2 label="Example 2"/>

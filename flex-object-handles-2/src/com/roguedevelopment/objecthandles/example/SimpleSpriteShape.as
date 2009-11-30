@@ -4,6 +4,11 @@ package com.roguedevelopment.objecthandles.example
 	
 	import mx.events.PropertyChangeEvent;
 
+	
+	/** 
+	 * This is an example and not part of the core ObjectHandles library. 
+	 **/
+
 	public class SimpleSpriteShape extends Sprite
 	{
 		protected var model:SimpleDataModel;

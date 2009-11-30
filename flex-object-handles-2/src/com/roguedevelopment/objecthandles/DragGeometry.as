@@ -27,6 +27,10 @@ package com.roguedevelopment.objecthandles
 {
 	import flash.geom.Rectangle;
 	
+	/**
+	 * Internally, ObjectHandles uses a DragGeometry to keep track of component during active
+	 * moves, and is how it applies constraints to those moves.
+	 **/
 	public class DragGeometry
 	{
 		public var x:Number=0;

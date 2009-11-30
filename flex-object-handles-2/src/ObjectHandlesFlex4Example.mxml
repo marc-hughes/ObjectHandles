@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  This is a sample application showing how to use ObjectHandles in a Flex 4 based application.
+-->
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/halo" 
+			   width="100%" height="100%"
+			   xmlns:example="com.roguedevelopment.objecthandles.example.*"
+			    backgroundColor="#6F6F6F"	 
+				xmlns:objecthandles="com.roguedevelopment.objecthandles.*" 
+				>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.*;
+			import com.roguedevelopment.objecthandles.example.*;
+			
+			
+			protected var objectHandles:ObjectHandles;
+			[Bindable] protected var flexModel1:SimpleDataModel = new SimpleDataModel();
+			[Bindable] protected var flexModel2:SimpleDataModel = new SimpleDataModel();	
+			
+			override protected function initializationComplete() : void
+			{				
+				objectHandles = new ObjectHandles( mainGroup , 
+					null, 
+					new Flex4HandleFactory() , 
+					new Flex4ChildManager() );
+				
+					flexModel1.x = 50;
+					flexModel1.y = 150;
+					flexModel1.width = 50;
+					flexModel1.height = 50;
+					objectHandles.registerComponent( flexModel1, flexShape1 );
+					
+					
+					flexModel2.x = 150;
+					flexModel2.y = 150;
+					flexModel2.width = 50;
+					flexModel2.height = 50;
+					objectHandles.registerComponent( flexModel2, flexShape2 );
+					
+					super.initializationComplete();
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	
+	<s:Group id="mainGroup" width="100%" height="100%">
+		
+		<!-- Here is a flex-4 style component -->
+		<example:SimpleFlex4Shape id="flexShape2" model="{flexModel2}" />
+		
+		<!-- Here is a flex-3 style component -->
+		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />
+		
+	</s:Group>
+	
+
+	
+</s:Application>

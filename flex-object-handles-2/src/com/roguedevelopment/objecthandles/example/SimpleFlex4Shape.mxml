@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+This is an example and not a part of the core ObjectHandles library.
+-->
+
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/halo" 
+		 width="{model.width}" height="{model.height}" 
+		 x="{model.x}" y="{model.y}"		 
+		 xmlns:example="com.roguedevelopment.objecthandles.example.*"
+		 rotation="{model.rotation}"
+		 >
+	
+	<fx:Declarations>
+		<example:SimpleDataModel id="model" />
+		
+		<s:SolidColor id="backgroundColor" color="#116666" alpha="1" />
+		<s:SolidColorStroke id="borderStroke" color="#222222" weight="2" alpha="1" />
+	</fx:Declarations>
+	
+	<s:Rect width="{width}" height="{height}" stroke="{borderStroke}" fill="{backgroundColor}" />
+	
+	
+	
+</s:Group>

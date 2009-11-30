@@ -24,12 +24,16 @@
  * 
  **/
  
+
+/**
+ * A handle implementation based on Sprite, primarily for use in Flex 3.
+ **/
 package com.roguedevelopment.objecthandles
 {
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 
-	public class Handle extends Sprite implements IHandle
+	public class SpriteHandle extends Sprite implements IHandle
 	{
 		private var _descriptor:HandleDescription;		
 		private var _targetModel:Object;
@@ -52,7 +56,7 @@ package com.roguedevelopment.objecthandles
 			_targetModel = value;
 		}
 		
-		public function Handle()
+		public function SpriteHandle()
 		{
 			super();
 			addEventListener( MouseEvent.ROLL_OUT, onRollOut );

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
 /**
  *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.html
@@ -25,6 +26,10 @@
  *  See README for more information.
  * 
  **/
+-->
+
+<!---
+  This is an example and not a part of the core ObjectHandles library.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 	implements="com.roguedevelopment.objecthandles.IHandle" 

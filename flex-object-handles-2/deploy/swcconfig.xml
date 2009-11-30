@@ -1,0 +1,28 @@
+<flex-config>
+<compiler>
+ <source-path>
+  <path-element>../src</path-element> 
+ </source-path>
+</compiler>
+<output>ObjectHandles.swc</output>
+<include-classes>
+ 	<class>com.roguedevelopment.objecthandles.CircleHandle</class>
+	<class>com.roguedevelopment.objecthandles.DragGeometry</class>
+	<class>com.roguedevelopment.objecthandles.SpriteHandle</class>	
+	<class>com.roguedevelopment.objecthandles.HandleDefinitions</class>
+	<class>com.roguedevelopment.objecthandles.HandleDescription</class>
+	<class>com.roguedevelopment.objecthandles.HandleRoles</class>
+	<class>com.roguedevelopment.objecthandles.IConstraint</class>
+	<class>com.roguedevelopment.objecthandles.IHandle</class>
+	<class>com.roguedevelopment.objecthandles.IMoveable</class>
+	<class>com.roguedevelopment.objecthandles.IResizeable</class>
+	<class>com.roguedevelopment.objecthandles.ObjectChangedEvent</class>
+	<class>com.roguedevelopment.objecthandles.ObjectHandles</class>
+	<class>com.roguedevelopment.objecthandles.ObjectHandlesSelectionManager</class>
+	<class>com.roguedevelopment.objecthandles.SelectionEvent</class>
+	<class>com.roguedevelopment.objecthandles.constraints.MaintainProportionConstraint</class>
+	<class>com.roguedevelopment.objecthandles.constraints.MovementConstraint</class>
+	<class>com.roguedevelopment.objecthandles.constraints.SizeConstraint</class>
+	<class>com.roguedevelopment.objecthandles.Flex3ChildManager</class>	
+</include-classes>
+</flex-config>

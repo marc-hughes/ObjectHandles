@@ -64,10 +64,26 @@ package com.roguedevelopment.objecthandles
     [Event(name="objectRotated",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     public class ObjectHandles extends EventDispatcher
     {
+		/**
+		 * The default handle class to use.
+		 * 
+		 * SpriteHandle is good for Flex 3 based applications, or Flex 4 applications where the object handles live
+		 * inside a Canvas.
+		 * 
+		 * Switch it over to a VisualElementHandle for Flex 4 based applications.  Do this before creating ObjectHandle instances,
+		 * it's merely here to provide a convienent way to set the default globally.
+		 **/
+		public static var defaultHandleClass:Class = SpriteHandle;
+		
+		// We need a zero point a lot, so lets not re-create it all the time.
         protected const zero:Point = new Point(0,0);
         
+		// The container that the object handles all live inside.
         protected var container:Sprite;
+		
+		
         public var selectionManager:ObjectHandlesSelectionManager;
+		
         protected var handleFactory:IFactory;
         
         public var defaultHandles:Array = [];
@@ -95,19 +111,50 @@ package com.roguedevelopment.objecthandles
         protected var mouseDownRotation:Number;
         protected var originalGeometry:DragGeometry;
         
+		/**
+		 * An array of IConstraint objects that influence how the objects are allowed to be
+		 * moved or resized.
+		 * 
+		 * For instance, put in a SizeConstraint to set the max or minimum sizes. 
+		 **/
         public var constraints:Array = [];
         
-        public var currentHandleConstraint:IFactory;
+        protected var currentHandleConstraint:IFactory;
         
+		/**
+		 * Flex 3 and Flex 4 applications manage children addition/removal differently (addChild vs. addElement) so I've abstracted
+		 * out that functionality into an IChildManager interface.
+		 **/
+		protected var _childManager:IChildManager;
+		
        //used to remember object changes so
        //events can be fired when the changes are complete
        private var isMoved:Boolean = false;
        private var isResized:Boolean = false;
        private var isRotated:Boolean = false;
             
+	   
+	   /**
+	     * @param container The base container that all of the objects and the handles will be added to.
+		 * 
+		 * @param selectionManager A manager class that deals with which object(s) are currently selected.  If you 
+		 * 						   pass null, a new one will be created for you.  It's often times useful to share 
+		 * 						   a single selection manage across an entire app so that "selection" is global.
+		 * 
+		 * @param handleFactory A factory capable of creating IHandle objects.
+		 * 						If you pass null, a generic Flex 3 based factory will be created.
+		 * 						Use the Flex4HandleFactory to make Group compatible handles.
+		 * 
+		 * @param childManager Flex 3 and Flex 4 applications manage children addition/removal differently (addChild vs. addElement) so I've abstracted
+		 *  				   out that functionality into an IChildManager interface that understands those differences.  In general, use Flex3ChildManager for 
+		 * 					   Flex3 applications and use Flex4ChildManager for Flex 4 based applications.
+		 * 
+		**/
         public function ObjectHandles(  container:Sprite , 
                                         selectionManager:ObjectHandlesSelectionManager = null, 
-                                        handleFactory:IFactory = null)
+                                        handleFactory:IFactory = null,
+										childManager:IChildManager	= null	
+										)
         {       
             this.container = container;
             
@@ -124,7 +171,7 @@ package com.roguedevelopment.objecthandles
             if( handleFactory )
                 this.handleFactory = handleFactory;
             else
-                this.handleFactory = new ClassFactory( Handle );
+                this.handleFactory = new ClassFactory( defaultHandleClass );
             
             
             this.selectionManager.addEventListener(SelectionEvent.ADDED_TO_SELECTION, onSelectionAdded );
@@ -170,9 +217,31 @@ package com.roguedevelopment.objecthandles
             defaultHandles.push( new HandleDescription( HandleRoles.ROTATE,
                                                         new Point(100,50) , 
                                                         new Point(20,0) ) ); 
+			
+			if( childManager == null )
+			{
+				_childManager = new Flex3ChildManager();
+			}
+			else
+			{
+				_childManager = childManager
+			}
             
         }
         
+		/**
+		 * Registers a component with the ObjectHandle manager.
+		 * 
+		 * @param dataModel The data model that represents this object.  This is where values will be commited to.  It should have a getter/setter for x,y,width, height, and optionally
+		 * 					rotation.
+		 * 
+		 * @param visualDisplay This is the actual on-screen display of the object.  We never set the coordinates of this object explictly, it should be bound
+		 *  				    to your data model.
+		 * 
+		 * @param handleDescriptions If you want non-standard handles, create a list of HandleDescription objects and pass them in.
+		 * 
+		 * @param captureKeyEvents Should we add event listeners to support keyboard navigation?
+		 **/
         public function registerComponent( dataModel:Object, visualDisplay:EventDispatcher , handleDescriptions:Array = null, captureKeyEvents:Boolean = true) : void
         {
             visualDisplay.addEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown, false, 0, true );
@@ -410,7 +479,9 @@ package com.roguedevelopment.objecthandles
         }
         protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
         {
-            var centerRotatedAmount:Number = toRadians(originalGeometry.rotation) - toRadians(mouseDownRotation) + getAngleInRadians(event.stageX, event.stageY);
+            var centerRotatedAmount:Number = toRadians(originalGeometry.rotation) - 
+											 toRadians(mouseDownRotation) + 
+											 getAngleInRadians(event.stageX, event.stageY);
             
             var oldRotationMatrix:Matrix = new Matrix();
             oldRotationMatrix.rotate( toRadians( originalGeometry.rotation) );
@@ -436,16 +507,30 @@ package com.roguedevelopment.objecthandles
          {
             var m:Matrix = new Matrix();
             var mousePos:Point = container.globalToLocal( new Point(x,y) );
+			
+			
+			
             var angle1:Number;
             m.rotate( toRadians( originalGeometry.rotation)  );
             var originalCenter:Point = m.transformPoint( new Point(originalGeometry.width/2, originalGeometry.height/2) );
             originalCenter.offset( originalGeometry.x,  originalGeometry.y );
+			
+////		This will draw some debug lines
+//			container.graphics.clear();
+//			container.graphics.lineStyle(1,0xff0000);
+//			container.graphics.moveTo( originalCenter.x, originalCenter.y );
+//			container.graphics.lineTo( mousePos.x, mousePos.y );
+//			container.graphics.lineStyle(1,0x00ff00);
+//			var ang:Number = Math.atan2(mousePos.y - originalCenter.x, mousePos.x - originalCenter.y) ;
+//			container.graphics.moveTo( originalCenter.x, originalCenter.y );
+//			container.graphics.lineTo( originalCenter.x + Math.cos(ang)*300, originalCenter.y + Math.sin(ang)*300);
+			
             if( container is Canvas) {
                 var parentCanvas:Canvas = container as Canvas;
                 return Math.atan2((mousePos.y + parentCanvas.verticalScrollPosition) - originalCenter.y, (mousePos.x + parentCanvas.horizontalScrollPosition) - originalCenter.x) ; 
             }
             else 
-                return Math.atan2(mousePos.y - originalCenter.x, mousePos.x - originalCenter.y) ; 
+                return Math.atan2(mousePos.y - originalCenter.y, mousePos.x - originalCenter.x) ; 
         }
         protected function applyMovement( event:MouseEvent, translation:DragGeometry ) : void
         {           
@@ -756,26 +841,12 @@ package com.roguedevelopment.objecthandles
         
         protected function addToContainer( display:Sprite):void
         {
-            if( container is Canvas )
-            {
-                (container as Canvas).rawChildren.addChild(display);
-            }
-            else
-            {
-                container.addChild( display );
-            }
+            _childManager.addChild(container, display );
         }       
         
         protected function removeFromContainer( display:Sprite):void
         {
-            if( container is Canvas )
-            {
-                (container as Canvas).rawChildren.removeChild(display);
-            }
-            else
-            {
-                container.removeChild( display );
-            }
+			_childManager.removeChild(container, display );            
         }
         
 

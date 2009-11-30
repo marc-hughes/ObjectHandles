@@ -3,6 +3,11 @@ package com.roguedevelopment.objecthandles.example
 	import mx.core.UIComponent;
 	import mx.events.PropertyChangeEvent;
 
+	
+	/** 
+	 * This is an example and not part of the core ObjectHandles library. 
+	 **/
+
 	public class SimpleFlexShape extends UIComponent
 	{
 		protected var _model:SimpleDataModel;

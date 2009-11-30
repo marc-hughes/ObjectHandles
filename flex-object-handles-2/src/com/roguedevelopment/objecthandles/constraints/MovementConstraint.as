@@ -31,6 +31,8 @@ package com.roguedevelopment.objecthandles.constraints
 	import com.roguedevelopment.objecthandles.IConstraint;
 	
 	/**
+	 * This is a constraint that makes an object stay within a certain bounds.
+	 * 
 	 * This isn't really done yet.  It doesn't handle rotated objects well
 	 **/
 	public class MovementConstraint implements IConstraint

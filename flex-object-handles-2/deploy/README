@@ -1,0 +1,7 @@
+
+
+In this folder you'll find prebuilt swcs for both Flex 3 and Flex 4, if you're just using ObjectHandles in a project,
+you can probably just plop one of those in your libs folder.
+
+The other files are neccessary to build a swc with ant, create an archive of the source, and upload it all to google code.  You
+probably won't need those.
