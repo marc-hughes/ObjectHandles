@@ -16,15 +16,11 @@ This is an example and not a part of the core ObjectHandles library.
 		
 		<mx:Script>
 		<![CDATA[
+			import com.roguedevelopment.objecthandles.HandleDescription;
+			import com.roguedevelopment.objecthandles.HandleRoles;
+			import com.roguedevelopment.objecthandles.ObjectHandles;
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
-			import com.roguedevelopment.objecthandles.SpriteHandle;
-			import com.roguedevelopment.objecthandles.ObjectHandles;
-			import mx.effects.Tween;
-			import mx.effects.Move;
-			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
-			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
-			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
 			
 			protected var objectHandles:ObjectHandles;
 			
@@ -34,6 +30,29 @@ This is an example and not a part of the core ObjectHandles library.
 			{
 				objectHandles = new ObjectHandles( this );
 				
+				var handles:Array = [];
+				
+				handles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_LEFT, 
+					new Point(0,0) ,
+					new Point(0,0) ) ); 
+				
+				
+				
+				handles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_RIGHT,
+					new Point(100,0) ,
+					new Point(0,0) ) ); 
+				
+				
+				handles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_RIGHT,
+					new Point(100,100) , 
+					new Point(0,0) ) ); 
+				
+				
+				
+				handles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_LEFT,
+					new Point(0,100) ,
+					new Point(0,0) ) ); 
+				
 				
 				var model:SimpleDataModel;							
 				
@@ -41,14 +60,14 @@ This is an example and not a part of the core ObjectHandles library.
 				model.x += 100;
 				model.y += 200;
 				var spriteShape:SimpleSpriteShape = new SimpleSpriteShape(model);
-				objectHandles.registerComponent( model, spriteShape );
+				objectHandles.registerComponent( model, spriteShape , handles);
 				rawChildren.addChild( spriteShape );
 
 				model = new SimpleDataModel();
 				model.x += 200;
 				model.y += 200;
 				spriteShape = new SimpleSpriteShape(model);
-				objectHandles.registerComponent( model, spriteShape );
+				objectHandles.registerComponent( model, spriteShape , handles);
 				rawChildren.addChild( spriteShape );
 				
 				

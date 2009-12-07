@@ -8,7 +8,11 @@ package com.roguedevelopment.objecthandles
        public static const OBJECT_MOVED:String = "objectMoved";
        public static const OBJECT_RESIZED:String = "objectResized";
        public static const OBJECT_ROTATED:String = "objectRotated";
-       
+
+	   public static const OBJECT_MOVING:String = "objectMoving";
+	   public static const OBJECT_RESIZING:String = "objectResizing";
+	   public static const OBJECT_ROTATING:String = "objectRotating";
+
        /**
        * An array of objects that were moved/resized or rotated.
        **/

@@ -33,11 +33,11 @@ package com.roguedevelopment.objecthandles
 	 **/
 	public class DragGeometry
 	{
-		public var x:Number=0;
-		public var y:Number=0;
-		public var width:Number=0;
-		public var height:Number=0;
-		public var rotation:Number=0;
+		[Bindable] public var x:Number=0;
+		[Bindable] public var y:Number=0;
+		[Bindable] public var width:Number=0;
+		[Bindable] public var height:Number=0;
+		[Bindable] public var rotation:Number=0;
 
 		public function clone() : DragGeometry
 		{
@@ -49,10 +49,25 @@ package com.roguedevelopment.objecthandles
 			rv.rotation = rotation;
 			return rv;
 		}
+
+		public function copyFrom( other:DragGeometry ) : void
+		{
+			x=other.x;
+			y=other.y;
+			width=other.width;
+			height=other.height;
+			rotation=other.rotation;
+		}
+
 		
 		public function getRectangle() : Rectangle
 		{
 			return new Rectangle(x,y,width,height);
+		}
+		
+		public function toString() : String
+		{
+			return "[DragGeometry " + x + "," + y + "+" + width + "x" + height + "]"; 	
 		}
 	}
 }

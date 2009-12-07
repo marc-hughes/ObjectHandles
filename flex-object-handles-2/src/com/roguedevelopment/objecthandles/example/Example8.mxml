@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/**
+ *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.html
+ * 
+ *  Copyright (c) 2009 Marc Hughes 
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a 
+ *  copy of this software and associated documentation files (the "Software"), 
+ *  to deal in the Software without restriction, including without limitation 
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ *  and/or sell copies of the Software, and to permit persons to whom the Software 
+ *  is furnished to do so, subject to the following conditions:
+ * 
+ *  The above copyright notice and this permission notice shall be included in all 
+ *  copies or substantial portions of the Software.
+ * 
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+ *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+ *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ * 
+ *  See README for more information.
+ * 
+ **/
+-->
+
+<!---
+This is an example and not a part of the core ObjectHandles library.
+-->
+
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="100%" height="100%" 
+				xmlns:example="com.roguedevelopment.objecthandles.example.*"
+				horizontalScrollPolicy="on"
+				verticalScrollPolicy="on"
+				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
+				creationComplete="init()"
+				click="backgroundClick(event);"
+				
+				>
+		<mx:Script>
+		<![CDATA[
+			import com.roguedevelopment.objecthandles.ObjectHandles;
+			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
+			import com.roguedevelopment.objecthandles.decorators.AlignmentDecorator;
+			import com.roguedevelopment.objecthandles.decorators.DecoratorManager;
+			
+			import mx.skins.spark.ContainerBorderSkin;
+			
+			protected var objectHandles:ObjectHandles;
+			
+			[Bindable] protected var flexModel1:SimpleDataModel;
+			[Bindable] protected var flexModel2:SimpleDataModel;
+			[Bindable] protected var flexModel3:SimpleDataModel;
+			[Bindable] protected var flexModel4:SimpleDataModel;
+			protected var decoratorManager:DecoratorManager;
+			
+			protected function init() : void
+			{
+				objectHandles = new ObjectHandles( this );
+
+				
+				flexModel1 = new SimpleDataModel();
+				flexModel1.x = 50;
+				flexModel1.y = 150;
+				flexModel1.width = 50;
+				flexModel1.height = 50;
+				objectHandles.registerComponent( flexModel1, flexShape1 );
+
+				flexModel2 = new SimpleDataModel();
+				flexModel2.x = 150;
+				flexModel2.y = 150;
+				flexModel2.width = 50;
+				flexModel2.height = 50;
+				objectHandles.registerComponent( flexModel2, flexShape2 );
+
+				flexModel3 = new SimpleDataModel();
+				flexModel3.x = 150;
+				flexModel3.y = 50;
+				flexModel3.width = 50;
+				flexModel3.height = 50;
+				objectHandles.registerComponent( flexModel3, flexShape3 );
+				
+				flexModel4 = new SimpleDataModel();
+				flexModel4.x = 50;
+				flexModel4.y = 50;
+				flexModel4.width = 50;
+				flexModel4.height = 50;
+				objectHandles.registerComponent( flexModel4, flexShape4 );				
+				
+				var constraint:SizeConstraint = new SizeConstraint();
+				constraint.minWidth = 20;
+				constraint.maxWidth = 500;
+				constraint.minHeight = 20;
+				constraint.maxHeight = 200;
+				objectHandles.constraints.push( constraint );		
+				
+				decoratorManager = new DecoratorManager( objectHandles, drawingLayer );
+				decoratorManager.addDecorator( new AlignmentDecorator() );				
+			}
+			
+			protected function backgroundClick(event:MouseEvent) : void
+			{		
+				if( event.target is ContainerBorderSkin )
+				{				
+					objectHandles.selectionManager.clearSelection();
+				}
+			}
+		]]>
+	</mx:Script>				
+		<mx:Text selectable="false" text="This is an example of using decorators.  Line up the shapes." 
+			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+		
+		<mx:UIComponent width="100%" height="100%" id="drawingLayer" />
+		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />
+		<example:SimpleFlexShape id="flexShape2" model="{flexModel2}" />
+		<example:SimpleFlexShape id="flexShape3" model="{flexModel3}" />
+		<example:SimpleFlexShape id="flexShape4" model="{flexModel4}" />
+		
+		<mx:Button x="3000" y="3000"/>
+	
+</mx:Canvas>

@@ -43,7 +43,6 @@ package com.roguedevelopment.objecthandles
 {
     import flash.display.DisplayObject;
     import flash.display.Sprite;
-    import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
@@ -62,6 +61,9 @@ package com.roguedevelopment.objecthandles
     [Event(name="objectMoved",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     [Event(name="objectResized",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     [Event(name="objectRotated",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectMoving",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectResizing",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectRotating",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     public class ObjectHandles extends EventDispatcher
     {
 		/**
@@ -81,18 +83,38 @@ package com.roguedevelopment.objecthandles
 		// The container that the object handles all live inside.
         protected var container:Sprite;
 		
+		/**
+		 * Should the user be allowed to select multiple items?
+		 **/
+		public var enableMultiSelect:Boolean=true;
 		
         public var selectionManager:ObjectHandlesSelectionManager;
 		
         protected var handleFactory:IFactory;
         
+		/**
+		 * When a single object is selected, these are the default handles that will appear.
+		 * 
+		 * You can modify it on an object by object basis by setting handleDescriptions in the
+		 * registerComponent method.
+		 **/
         public var defaultHandles:Array = [];
         
+		/**
+		 * These are the handles that appear around the bounding box when multiple objects are selected.
+		 **/
+		public var multiSelectHandles:Array = [];
+		
         // Key = a Model, value = an Array of handles
         protected var handles:Dictionary = new Dictionary(); 
         
         // Key = a visual, value = the model
-        protected var models:Dictionary = new Dictionary(); 
+        protected var models:Dictionary = new Dictionary();
+        
+		// A dictionary of the geometry of the models before the current drag operation started.		
+		// This is set at the beginning of the user gesture.
+        // Key = a visual, value = the model
+        protected var originalModelGeometry:Dictionary = new Dictionary(); 
 
         // Key = a model, value = the visual
         protected var visuals:Dictionary = new Dictionary();
@@ -106,7 +128,9 @@ package com.roguedevelopment.objecthandles
         protected var temp:Point = new Point(0,0);
         
         protected var isDragging:Boolean = false;
+		
         protected var currentDragRole:uint = 0;
+		
         protected var mouseDownPoint:Point;
         protected var mouseDownRotation:Number;
         protected var originalGeometry:DragGeometry;
@@ -127,11 +151,15 @@ package com.roguedevelopment.objecthandles
 		 **/
 		protected var _childManager:IChildManager;
 		
+		public var modelList:Array=[];
+		
        //used to remember object changes so
        //events can be fired when the changes are complete
        private var isMoved:Boolean = false;
        private var isResized:Boolean = false;
        private var isRotated:Boolean = false;
+	   
+	   protected var multiSelectModel:DragGeometry=new DragGeometry();
             
 	   
 	   /**
@@ -173,11 +201,52 @@ package com.roguedevelopment.objecthandles
             else
                 this.handleFactory = new ClassFactory( defaultHandleClass );
             
+			
             
             this.selectionManager.addEventListener(SelectionEvent.ADDED_TO_SELECTION, onSelectionAdded );
             this.selectionManager.addEventListener(SelectionEvent.REMOVED_FROM_SELECTION, onSelectionRemoved );
             this.selectionManager.addEventListener(SelectionEvent.SELECTION_CLEARED, onSelectionCleared );
             
+			
+
+				
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_LEFT, 
+				zero ,
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_UP ,
+				new Point(50,0) , 
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_RIGHT,
+				new Point(100,0) ,
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_RIGHT,
+				new Point(100,50) , 
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_RIGHT,
+				new Point(100,100) , 
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN ,
+				new Point(50,100) ,
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_LEFT,
+				new Point(0,100) ,
+				zero ) ); 
+			
+			multiSelectHandles.push( new HandleDescription( HandleRoles.RESIZE_LEFT,
+				new Point(0,50) ,
+				zero ) ); 
+							
+			multiSelectHandles.push( new HandleDescription( HandleRoles.ROTATE,
+				new Point(100,50) , 
+				new Point(20,0) ) ); 
+				
+				
             defaultHandles.push( new HandleDescription( HandleRoles.RESIZE_UP + HandleRoles.RESIZE_LEFT, 
                                                         zero ,
                                                         zero ) ); 
@@ -210,9 +279,6 @@ package com.roguedevelopment.objecthandles
                                                         new Point(0,50) ,
                                                         zero ) ); 
         
-//          defaultHandles.push( new HandleDescription( HandleRoles.MOVE,
-//                                                      new Point(50,50) , 
-//                                                      zero ) ); 
         
             defaultHandles.push( new HandleDescription( HandleRoles.ROTATE,
                                                         new Point(100,50) , 
@@ -226,6 +292,8 @@ package com.roguedevelopment.objecthandles
 			{
 				_childManager = childManager
 			}
+			
+			registerComponent(multiSelectModel,null,multiSelectHandles,false);
             
         }
         
@@ -244,14 +312,22 @@ package com.roguedevelopment.objecthandles
 		 **/
         public function registerComponent( dataModel:Object, visualDisplay:EventDispatcher , handleDescriptions:Array = null, captureKeyEvents:Boolean = true) : void
         {
-            visualDisplay.addEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown, false, 0, true );
-            visualDisplay.addEventListener( SelectionEvent.SELECTED, handleSelection );
-            if(captureKeyEvents)
-            {
-             visualDisplay.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
-            }
+			modelList.push(dataModel);
+			if( visualDisplay )
+			{
+	            visualDisplay.addEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown, false, 0, true );
+	
+	            visualDisplay.addEventListener( SelectionEvent.SELECTED, handleSelection );
+	            if(captureKeyEvents)
+	            {
+	             visualDisplay.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+            	}
+				
+				models[visualDisplay] = dataModel;
+			}
+			
             dataModel.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
-            models[visualDisplay] = dataModel;
+            
             visuals[dataModel] = visualDisplay;     
             if( handleDescriptions )
             {
@@ -296,6 +372,8 @@ package com.roguedevelopment.objecthandles
             var dataModel:Object = findModel(visualDisplay as DisplayObject);
             dataModel.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
             
+			modelList.splice( modelList.indexOf(dataModel), 1 );
+			
             delete visuals[dataModel];
             delete models[visualDisplay];
         }
@@ -314,34 +392,26 @@ package com.roguedevelopment.objecthandles
         
         protected function onSelectionAdded( event:SelectionEvent ) : void
         {
-            for each ( var model:Object in event.targets )
-            {
-                setupHandles( model );
-            }
+			setupHandles();			
         }
         
         protected function onSelectionRemoved( event:SelectionEvent ) : void
         {
-            for each ( var model:Object in event.targets )
-            {
-                removeHandles( model );
-            }
-            
+			setupHandles();            
         }
         
         protected function onSelectionCleared( event:SelectionEvent ) : void
-        {
-            for each ( var model:Object in event.targets )
-            {
-                removeHandles( model );
-            }
-
+        {			
+			setupHandles();
+			lastSelectedModel=null;
         }
+		
         
         protected function onComponentMouseDown(event:MouseEvent):void
         {           
-            handleSelection( event );
-            
+			
+			handleSelection( event );
+			
             container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
             container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
 
@@ -386,6 +456,12 @@ package com.roguedevelopment.objecthandles
            container.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
            container.stage.removeEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
         
+		   if( selectionManager.currentlySelected.length > 1 )
+		   {
+			   multiSelectModel.copyFrom( selectionManager.getGeometry() );			   
+		   	   updateHandlePositions(multiSelectModel);
+		   }
+		   
            isDragging = false;
         }
                
@@ -441,33 +517,125 @@ package com.roguedevelopment.objecthandles
             
             applyTranslation( translation );            
             
-            event.updateAfterEvent();               
+            event.updateAfterEvent();    
+			
+			if (isMoved)
+			{
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_MOVING, true));
+			}
+			else if (isResized)
+			{
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_RESIZING, true));
+			}
+			else if (isRotated)
+			{
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_ROTATING, true));
+			}			
         }
-        
+
+		protected function applyTranslationForSingleObject( current:Object, translation:DragGeometry , originalGeometry:DragGeometry) : void
+		{
+			
+			if( current.hasOwnProperty("x") ) current.x = translation.x + originalGeometry.x;
+			if( current.hasOwnProperty("y") ) current.y = translation.y + originalGeometry.y;
+			
+			if( current.hasOwnProperty("width") ) current.width = translation.width + originalGeometry.width;
+			if( current.hasOwnProperty("height") ) current.height = translation.height + originalGeometry.height;
+			if( current.hasOwnProperty("rotation") ) current.rotation = translation.rotation + originalGeometry.rotation;
+			
+			updateHandlePositions(  current );
+		}
+		
+	
+		
         protected function applyTranslation( translation:DragGeometry) : void
         {
+			
             if( selectionManager.currentlySelected.length == 1 )
-            {               
-                var current:Object = selectionManager.currentlySelected[0];
-                
-                if( current.hasOwnProperty("x") ) current.x = translation.x + originalGeometry.x;
-                if( current.hasOwnProperty("y") ) current.y = translation.y + originalGeometry.y;
-                if( current.hasOwnProperty("width") ) current.width = translation.width + originalGeometry.width;
-                if( current.hasOwnProperty("height") ) current.height = translation.height + originalGeometry.height;
-                if( current.hasOwnProperty("rotation") ) current.rotation = translation.rotation + originalGeometry.rotation;
-                
-                updateHandlePositions(  current );
-                    
+            {               				
+				applyTranslationForSingleObject( selectionManager.currentlySelected[0], translation, originalGeometry );                    
             }
             else if( selectionManager.currentlySelected.length > 1 )
-            {
-                // todo: handle multiple selects
+            {				
+				applyTranslationForSingleObject(multiSelectModel, translation , originalGeometry);
+				for each ( var subObject:Object in selectionManager.currentlySelected )
+				{
+					var subTranslation:DragGeometry = calculateTranslationFromMultiTranslation( translation, subObject );
+					applyTranslationForSingleObject( subObject, subTranslation , originalModelGeometry[subObject] );
+				}
             }
 
         }
         
+		private var selectionMatrix:Matrix = new Matrix();
+		private var objectMatrix:Matrix = new Matrix();
+		private var relativeGeometry:Point = new Point();
+		/**
+		 * Calculates the translation of a single object in a group of objects that is selected
+		 * based on the translation of the entire group.
+		 **/
+		protected function calculateTranslationFromMultiTranslation(overallTranslation:DragGeometry ,  object:Object) : DragGeometry
+		{
+			var rv:DragGeometry = new DragGeometry();
+
+			
+			// This is the rotation, scaling, and translation of the entire selection.
+			selectionMatrix.identity();
+			selectionMatrix.rotate( toRadians( overallTranslation.rotation ));
+			selectionMatrix.scale( (originalGeometry.width + overallTranslation.width) / originalGeometry.width,
+				(originalGeometry.height + overallTranslation.height) / originalGeometry.height );
+			selectionMatrix.translate( overallTranslation.x + originalGeometry.x, overallTranslation.y + originalGeometry.y);
+
+ 			// This is the point the object is relative to the selection
+			
+			relativeGeometry.x = originalModelGeometry[object].x - originalGeometry.x;
+			relativeGeometry.y = originalModelGeometry[object].y - originalGeometry.y;			
+			
+			objectMatrix.identity();
+			objectMatrix.rotate( toRadians( overallTranslation.rotation +  originalModelGeometry[object].rotation) ); 			
+			objectMatrix.translate(relativeGeometry.x, relativeGeometry.y);
+			
+
+			var translatedZeroPoint:Point = objectMatrix.transformPoint( zero );
+			var translatedTopRightCorner:Point = objectMatrix.transformPoint( new Point(originalModelGeometry[object].width,0) );			
+			var translatedBottomLeftCorner:Point = objectMatrix.transformPoint( new Point(0,originalModelGeometry[object].height) );			
+
+			translatedZeroPoint = selectionMatrix.transformPoint( translatedZeroPoint );
+			translatedTopRightCorner = selectionMatrix.transformPoint( translatedTopRightCorner );
+			translatedBottomLeftCorner = selectionMatrix.transformPoint( translatedBottomLeftCorner );
+
+			// uncomment to draw debug graphics.
+//			container.graphics.lineStyle(2,0xff0000,0.5);
+//			container.graphics.drawCircle(translatedZeroPoint.x, translatedZeroPoint.y , 4);
+//			container.graphics.lineStyle(2,0xffff00,0.5);
+//			container.graphics.drawCircle(translatedTopRightCorner.x, translatedTopRightCorner.y , 4);
+			
+			
+			
+			
+			var targetWidth:Number = Point.distance( translatedZeroPoint, translatedTopRightCorner);
+			var targetHeight:Number = Point.distance( translatedZeroPoint, translatedBottomLeftCorner ) ;
+			
+			// remember, rv is the CHANGE in value from the original, not an absolute value.
+			rv.x = translatedZeroPoint.x - originalModelGeometry[object].x; 
+			rv.y = translatedZeroPoint.y - originalModelGeometry[object].y;
+			rv.width = targetWidth - originalModelGeometry[object].width;
+			rv.height = targetHeight - originalModelGeometry[object].height;
+			
+			var targetAngle:Number = toDegrees(Math.atan2( translatedTopRightCorner.y - translatedZeroPoint.y, translatedTopRightCorner.x - translatedZeroPoint.x));
+			
+			rv.rotation = targetAngle - originalModelGeometry[object].rotation - overallTranslation.rotation;
+			return rv;
+		}
+		
         protected function applyConstraints(translation:DragGeometry, currentDragRole:uint):void
         {
+			if( selectionManager.currentlySelected.length > 1 )
+			{
+				// We don't apply constraints when there's a bunch of things selected.
+				return;
+			}
+			
             if (currentHandleConstraint != null)
             {
                 currentHandleConstraint.newInstance().applyConstraint( originalGeometry, translation, currentDragRole );
@@ -696,13 +864,26 @@ package com.roguedevelopment.objecthandles
             return model;
         }
         
-        public function handleSelection( event : Event ) : void
+        public function handleSelection( event : MouseEvent ) : void
         {
             var model:Object = findModel( event.target as DisplayObject );
             
             if( ! model ) { return; }
-            selectionManager.setSelected( model );
             
+            // if shift key - add/remove to selection
+            if(event.shiftKey && enableMultiSelect)  
+			{
+            	if(selectionManager.isSelected(model)) {
+            		selectionManager.removeFromSelected(model);
+            	} else {
+            		selectionManager.addToSelected(model);
+            	}            
+            } 
+			else 
+			{
+				if(! selectionManager.isSelected( model ) )
+            			selectionManager.setSelected( model );
+            }
             
         }
 
@@ -711,22 +892,58 @@ package com.roguedevelopment.objecthandles
             isDragging = true;  
             mouseDownPoint = new Point( event.stageX, event.stageY );           
             originalGeometry = selectionManager.getGeometry();
+            
+            // saving old coordinates
+            originalModelGeometry = new Dictionary();
+            for each(var current:Object in selectionManager.currentlySelected) {
+            	originalModelGeometry[current] = selectionManager.getGeometryForObject(current);
+            }
             mouseDownRotation = originalGeometry.rotation + toDegrees( getAngleInRadians(event.stageX, event.stageY) );         
         }
         
-        protected function setupHandles( model:Object ) : void
+		protected var lastSelectedModel:Object;
+		
+        protected function setupHandles(  ) : void
         {   
-            removeHandles(model);       
-            
-            var desiredHandles:Array = getHandleDefinitions(model);
-            for each ( var descriptor:HandleDescription in desiredHandles )
-            {
-                createHandle( model, descriptor);
-            }
-            
-            updateHandlePositions(model);
-             
+			if( selectionManager.currentlySelected.length == 0 )
+			{
+				removeHandles( lastSelectedModel );
+				removeHandles( multiSelectModel );
+			}
+			else if( selectionManager.currentlySelected.length == 1 )
+			{
+				// single object selected
+				createHandlesFor( selectionManager.currentlySelected[0] );
+				updateHandlePositions(selectionManager.currentlySelected[0]);
+				removeHandles( multiSelectModel );
+				removeHandles( lastSelectedModel );
+				lastSelectedModel = selectionManager.currentlySelected[0] ;
+			}
+			else
+			{
+				// Many objects selected
+				removeHandles( lastSelectedModel );
+				var geo:DragGeometry = selectionManager.getGeometry();				
+				if(geo )
+				{
+					multiSelectModel.copyFrom( geo );
+					createHandlesFor( multiSelectModel );
+					updateHandlePositions( multiSelectModel );
+				}
+			}
         }
+		
+		
+		
+		
+		protected function createHandlesFor( model:Object ) : void
+		{
+			var desiredHandles:Array = getHandleDefinitions(model);
+			for each ( var descriptor:HandleDescription in desiredHandles )
+			{
+				createHandle( model, descriptor);
+			}			
+		}
         
         protected function getHandleDefinitions( model:Object ) :Array
         {

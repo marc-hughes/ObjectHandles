@@ -36,23 +36,18 @@ This is an example and not a part of the core ObjectHandles library.
 				xmlns:example="com.roguedevelopment.objecthandles.example.*"
 				horizontalScrollPolicy="on"
 				verticalScrollPolicy="on"
-				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" borderThickness="2"
+				backgroundColor="#FFFFFF" borderStyle="solid" borderColor="#000000" backgroundAlpha="1" borderThickness="2"
 				creationComplete="init()"
-				click="if( event.target == this ) objectHandles.selectionManager.clearSelection();"
+				click="backgroundClick(event)"
 				
 				>
 		<mx:Script>
 		<![CDATA[
 			import com.roguedevelopment.objecthandles.ObjectChangedEvent;
-			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
-			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
-			import com.roguedevelopment.objecthandles.SpriteHandle;
 			import com.roguedevelopment.objecthandles.ObjectHandles;
-			import mx.effects.Tween;
-			import mx.effects.Move;
-			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
-			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
-			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
+			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
+			
+			import mx.skins.spark.ContainerBorderSkin;
 			
 			protected var objectHandles:ObjectHandles;
 			
@@ -85,6 +80,14 @@ This is an example and not a part of the core ObjectHandles library.
 				
 				objectHandles.addEventListener(ObjectChangedEvent.OBJECT_MOVED, onObjectMoved );
 				objectHandles.constraints.push( constraint );							
+			}
+			
+			protected function backgroundClick(event:MouseEvent) : void
+			{		
+				if( event.target is ContainerBorderSkin )
+				{				
+					objectHandles.selectionManager.clearSelection();
+				}
 			}
 			
 			protected function onObjectMoved(event:ObjectChangedEvent):void
