@@ -983,18 +983,23 @@ package com.roguedevelopment.objecthandles
             handle.redraw();
         }
         
-        protected function getContainerScrollAmount() : Point
-        {
-            var rv:Point = new Point(0,0);
-            
-            if( container is Container )
-            {
-                var con:Container = container as Container;
-                rv.x = con.horizontalScrollPosition;
-                rv.y = con.verticalScrollPosition;
-            }
-            
-            return rv;
+        protected function getContainerScrollAmount() : Point 
+        { 
+            var rv:Point = new Point(0,0); 
+            if( container is Container ) 
+            { 
+                var con:Container = container as Container; 
+                // If the scroll amount is negative we return 0 
+                if (con.horizontalScrollPosition < 0) 
+                         rv.x = 0 
+                else 
+                        rv.x = con.horizontalScrollPosition; 
+                if (con.verticalScrollPosition  < 0) 
+                        rv.y = 0 
+                else 
+                        rv.y = con.verticalScrollPosition; 
+            } 
+            return rv; 
         }
         
         protected function updateHandlePositions( model:Object ) : void
