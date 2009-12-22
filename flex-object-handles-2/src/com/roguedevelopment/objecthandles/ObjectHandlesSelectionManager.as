@@ -126,7 +126,10 @@ package com.roguedevelopment.objecthandles
 			for each(var modelObject:Object in currentlySelected) 
 			{			
 				matrix.identity();
-				matrix.rotate( toRadians(modelObject.rotation) );
+				if( modelObject.hasOwnProperty("rotation") )
+				{
+					matrix.rotate( toRadians(modelObject.rotation) );
+				}
 				matrix.translate( modelObject.x, modelObject.y );
 				
 				

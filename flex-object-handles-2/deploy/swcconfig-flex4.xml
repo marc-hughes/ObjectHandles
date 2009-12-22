@@ -26,5 +26,10 @@
 	<class>com.roguedevelopment.objecthandles.constraints.SizeConstraint</class>
 	<class>com.roguedevelopment.objecthandles.Flex3ChildManager</class>
 	<class>com.roguedevelopment.objecthandles.Flex4ChildManager</class>
+	<class>com.roguedevelopment.objecthandles.Flex4HandleFactory</class>
+	<class>com.roguedevelopment.objecthandles.VisualElementHandle</class>
+	
+	
+	
 </include-classes>
 </flex-config>
