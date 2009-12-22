@@ -44,6 +44,7 @@ package com.roguedevelopment.objecthandles
     import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.EventDispatcher;
+    import flash.events.IEventDispatcher;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.geom.Matrix;
@@ -310,7 +311,7 @@ package com.roguedevelopment.objecthandles
 		 * 
 		 * @param captureKeyEvents Should we add event listeners to support keyboard navigation?
 		 **/
-        public function registerComponent( dataModel:Object, visualDisplay:EventDispatcher , handleDescriptions:Array = null, captureKeyEvents:Boolean = true) : void
+        public function registerComponent( dataModel:Object, visualDisplay:IEventDispatcher , handleDescriptions:Array = null, captureKeyEvents:Boolean = true) : void
         {
 			modelList.push(dataModel);
 			if( visualDisplay )

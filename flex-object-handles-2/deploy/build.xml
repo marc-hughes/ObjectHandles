@@ -1,4 +1,4 @@
-<project name="ObjectHandles" default="deployLocal">
+<project name="ObjectHandles" default="build-swc">
 
 	<!--
 	  to use this build script, you need to create a build.properties to specify some machine-dependent values.  I don't include this in
