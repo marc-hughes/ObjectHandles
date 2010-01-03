@@ -84,11 +84,11 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint2.minY = 20;
 				constraint2.maxX = 300;
 				constraint2.maxY = 300;
-			//	objectHandles.constraints.push( constraint2 );				
+				objectHandles.constraints.push( constraint2 );				
 			}
 		]]>
 	</mx:Script>
-		<mx:Text text="This example has two objects that are derived from Sprite, so they are not flex components.  Version 1 of ObjectHandles was unable to do this easily." width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+		<mx:Text text="This example has two objects that are derived from Sprite, so they are not flex components.  Version 1 of ObjectHandles was unable to do this easily.  This example also has a size and movement constraint applied so you can't arbitrarily manipulate them." width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
 	
 	
 	

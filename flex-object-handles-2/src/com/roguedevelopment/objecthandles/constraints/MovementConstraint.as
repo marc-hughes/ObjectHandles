@@ -44,53 +44,68 @@ package com.roguedevelopment.objecthandles.constraints
 
 		public function applyConstraint( original:DragGeometry, translation:DragGeometry, resizeHandleRole:uint ) : void
 		{
-			if( ! isNaN( maxX ) )
+			if(!isNaN(maxX))
 			{
-				if( (original.x + translation.x + original.width + translation.width) > maxX )
+				if((original.x + translation.x + original.width +
+					translation.width) > maxX)
 				{
-					if( HandleRoles.isMove( resizeHandleRole ) )
+					if(HandleRoles.isMove(resizeHandleRole))
 					{
-						translation.x = maxX - (original.x + original.width );
+						translation.x = maxX - (original.x + original.width);
 					}
-					else
+					else if(HandleRoles.isResizeRight(resizeHandleRole))
 					{
-						translation.width = maxX - (original.x + translation.x + original.width );
+						translation.width = maxX - (original.x + translation.x +
+							original.width);
 						
 					}
 				}
 			}
-				
-			if( ! isNaN( maxY ) )
+			
+			if(!isNaN(maxY))
 			{
-				if( (original.y + translation.y + original.height + translation.height) > maxY )
+				if((original.y + translation.y + original.height +
+					translation.height) > maxY)
 				{
-					if( HandleRoles.isMove( resizeHandleRole ) )
+					if(HandleRoles.isMove(resizeHandleRole))
 					{
-						translation.y = maxY - (original.y + original.height );
+						translation.y = maxY - (original.y + original.height);
 					}
-					else
+					else if(HandleRoles.isResizeDown(resizeHandleRole))
 					{
-						translation.height = maxY - (original.y + translation.y + original.height );
+						translation.height = maxY - (original.y + translation.y +
+							original.height);
 						
 					}
 				}
 			}
-
-			if( ! isNaN( minX ) )
-			{							
-				if( (original.x + translation.x) < minX )
+			
+			if(!isNaN(minX))
+			{
+				if((original.x + translation.x) < minX)
 				{
 					translation.x = minX - original.x;
 				}
+				if(HandleRoles.isResizeLeft(resizeHandleRole) && original.x -
+					translation.width < minX)
+				{
+					translation.width = - minX + original.x;
+				}
 			}
-
-			if( ! isNaN( minY ) )
-			{				
-				if( (original.y + translation.y ) < minY )
+			
+			if(!isNaN(minY))
+			{
+				if((original.y + translation.y) < minY)
 				{
 					translation.y = minY - original.y;
 				}
-			}	
+				if(HandleRoles.isResizeUp(resizeHandleRole) && original.y -
+					translation.height < minY)
+				{
+					translation.height = - minY + original.y;
+				}
+				
+			}
 		}
 
 	}
