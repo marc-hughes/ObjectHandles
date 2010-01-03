@@ -7,11 +7,12 @@
 	paddingRight="10" 
 	backgroundGradientAlphas="[1.0, 1.0]" 
 	backgroundGradientColors="[#444444, #616161]"
+	backgroundColor="#ffffff"
 	creationComplete="init()"
 	xmlns:example="com.roguedevelopment.objecthandles.example.*" viewSourceURL="srcview/index.html">
 
  
-	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}" color="#FFFFFF" fontWeight="bold" fontSize="15">
+	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}"  fontWeight="bold" fontSize="15">
 	</mx:LinkBar>
 	
 	<mx:ViewStack width="100%" height="100%" id="viewStack" >
@@ -22,6 +23,7 @@
 		<example:Example5 label="Example 5"/>
 		<example:Example6 label="Example 6"/>
 		<example:Example7 label="Example 7"/>
+		<example:Example8 label="Example 8"/>
 	</mx:ViewStack>
 	
 	

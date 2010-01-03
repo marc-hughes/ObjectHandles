@@ -377,6 +377,8 @@ package com.roguedevelopment.objecthandles
 			
             delete visuals[dataModel];
             delete models[visualDisplay];
+			
+			selectionManager.clearSelection();
         }
         
         protected function onModelChange(event:PropertyChangeEvent):void
