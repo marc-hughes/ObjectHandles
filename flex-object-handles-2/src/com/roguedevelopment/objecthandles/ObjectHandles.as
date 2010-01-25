@@ -876,7 +876,7 @@ package com.roguedevelopment.objecthandles
             // if shift key - add/remove to selection
             if(event.shiftKey && enableMultiSelect)  
 			{
-            	if(selectionManager.isSelected(model)) {
+            	if(selectionManager.isSelected(model) && selectionManager.currentlySelected.length > 1) {
             		selectionManager.removeFromSelected(model);
             	} else {
             		selectionManager.addToSelected(model);
@@ -932,6 +932,7 @@ package com.roguedevelopment.objecthandles
 					multiSelectModel.copyFrom( geo );
 					createHandlesFor( multiSelectModel );
 					updateHandlePositions( multiSelectModel );
+					lastSelectedModel = multiSelectModel;
 				}
 			}
         }
@@ -992,15 +993,19 @@ package com.roguedevelopment.objecthandles
             if( container is Container ) 
             { 
                 var con:Container = container as Container; 
-                // If the scroll amount is negative we return 0 
-                if (con.horizontalScrollPosition < 0) 
-                         rv.x = 0 
+                if (con.horizontalScrollPosition < 0)  
+                	rv.x = 0 
+                else if (con.horizontalScrollPosition > con.maxHorizontalScrollPosition)
+            		rv.y = con.maxHorizontalScrollPosition 
                 else 
-                        rv.x = con.horizontalScrollPosition; 
+                    rv.x = con.horizontalScrollPosition; 
+                    
                 if (con.verticalScrollPosition  < 0) 
-                        rv.y = 0 
+                    rv.y = 0 
+                else if (con.verticalScrollPosition > con.maxVerticalScrollPosition)
+            		rv.y = con.maxVerticalScrollPosition 
                 else 
-                        rv.y = con.verticalScrollPosition; 
+               		rv.y = con.verticalScrollPosition; 
             } 
             return rv; 
         }
