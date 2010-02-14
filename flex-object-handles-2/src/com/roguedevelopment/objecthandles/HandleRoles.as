@@ -39,7 +39,10 @@ package com.roguedevelopment.objecthandles
 		
 		
 		// some convienence methods:
-		
+		public static function isResize(val:uint) : Boolean
+		{
+			return isResizeDown(val) || isResizeLeft(val) || isResizeRight(val) || isResizeUp(val);
+		}
 		public static function isResizeUp( val:uint ) : Boolean
 		{
 			return (val & RESIZE_UP) == RESIZE_UP;

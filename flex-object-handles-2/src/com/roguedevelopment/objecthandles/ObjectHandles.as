@@ -1,7 +1,7 @@
 /**
  *  Latest information on this project can be found at http://www.rogue-development.com/objectHandles.html
  * 
- *  Copyright (c) 2009 Marc Hughes 
+ *  Copyright (c) 2010 Marc Hughes 
  * 
  *  Permission is hereby granted, free of charge, to any person obtaining a 
  *  copy of this software and associated documentation files (the "Software"), 
@@ -112,6 +112,9 @@ package com.roguedevelopment.objecthandles
         // Key = a visual, value = the model
         protected var models:Dictionary = new Dictionary();
         
+        // Key = a model, value = an array of constraints for that model.
+        protected var constraints:Dictionary = new Dictionary();
+        
 		// A dictionary of the geometry of the models before the current drag operation started.		
 		// This is set at the beginning of the user gesture.
         // Key = a visual, value = the model
@@ -127,6 +130,7 @@ package com.roguedevelopment.objecthandles
         protected var handleCache:Array = [];
         
         protected var temp:Point = new Point(0,0);
+        protected var tempMatrix:Matrix = new Matrix();
         
         protected var isDragging:Boolean = false;
 		
@@ -142,7 +146,13 @@ package com.roguedevelopment.objecthandles
 		 * 
 		 * For instance, put in a SizeConstraint to set the max or minimum sizes. 
 		 **/
-        public var constraints:Array = [];
+        protected var defaultConstraints:Array = [];
+        
+        /**
+        * An array of IConstraint objects that influence how a group of objects are allowed to be
+        * moved or resized.
+        **/
+        protected var multiSelectConstraints:Array = [];
         
         protected var currentHandleConstraint:IFactory;
         
@@ -162,6 +172,16 @@ package com.roguedevelopment.objecthandles
 	   
 	   protected var multiSelectModel:DragGeometry=new DragGeometry();
             
+            
+       /** 
+       * Many times below we have the need to create lots of temporary DragGeometry objects,
+       * we can use this one instead for times when we only need one at a time so we're not
+       * allocating and deallocating tons of objects causing the garbage collector to go crazy.
+       * 
+       * Be very careful not to use this in a way that multiple places are depending on it at once!
+       *  
+       **/
+       private var tempGeometry:DragGeometry = new DragGeometry();
 	   
 	   /**
 	     * @param container The base container that all of the objects and the handles will be added to.
@@ -311,9 +331,14 @@ package com.roguedevelopment.objecthandles
 		 * 
 		 * @param captureKeyEvents Should we add event listeners to support keyboard navigation?
 		 **/
-        public function registerComponent( dataModel:Object, visualDisplay:IEventDispatcher , handleDescriptions:Array = null, captureKeyEvents:Boolean = true) : void
+        public function registerComponent( dataModel:Object, 
+        									visualDisplay:IEventDispatcher , 
+        									handleDescriptions:Array = null, 
+        									captureKeyEvents:Boolean = true,
+        									customConstraints:Array = null ) : void
         {
 			modelList.push(dataModel);
+			
 			if( visualDisplay )
 			{
 	            visualDisplay.addEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown, false, 0, true );
@@ -333,7 +358,51 @@ package com.roguedevelopment.objecthandles
             if( handleDescriptions )
             {
                 handleDefinitions[ dataModel ] = handleDescriptions;
-            }               
+            }  
+            
+            if( customConstraints )
+            {
+            	constraints[dataModel] = customConstraints;
+            }             
+        }
+        
+        
+        /**
+          * A constraint limits the way something could be sized or moved.  For instance, you could have a minimum size. 
+          *  
+          * There are 3 types of constraints.
+          * 
+          * A constraint that applies to a single component (set in the registerComponent call)
+          * A constraint that applies to groups of components during multi selection (set in addMultiSelectConstraint)
+          * Constraints that apply to all individual components
+          * 
+          * This method adds constraints to that last one.
+          **/ 
+        public function addDefaultConstraint( constraint:IConstraint ) : void
+        {
+        	defaultConstraints.push( constraint );
+        }
+
+
+        /**
+          * A constraint limits the way something could be sized or moved.  For instance, you could have a minimum size. 
+          *  
+          * There are 3 types of constraints.
+          * 
+          * A constraint that applies to a single component (set in the registerComponent call)
+          * Constraints that apply to all individual components (set in addDefaultConstraint)
+          * A constraint that applies to groups of components during multi selection 
+          * 
+          * This method adds constraints to that last one.
+          **/         
+        public function addMultiSelectConstraint( constraint:IConstraint ) : void
+        {
+        	multiSelectConstraints.push( constraint );
+        }
+        
+        public function getDisplayForModel( model:Object ) : IEventDispatcher
+        {
+        	return visuals[model];
         }
         
         protected function onKeyDown(event:KeyboardEvent):void
@@ -348,7 +417,11 @@ package com.roguedevelopment.objecthandles
                 default:return; 
             }
             
+			originalGeometry = selectionManager.getGeometry();
+                                
+            
             applyConstraints( t, HandleRoles.MOVE );
+            
             applyTranslation( t );
         }
         
@@ -365,20 +438,34 @@ package com.roguedevelopment.objecthandles
             return false;
         }
         
-        public function unregisterComponent( visualDisplay:EventDispatcher ) : void
+        
+        public function unregisterModel( model:Object ) : void
+        {
+        	var display:IEventDispatcher = visuals[model];
+        	unregisterComponent( display );
+        	
+        }
+        
+        public function unregisterComponent( visualDisplay:IEventDispatcher ) : void
         {
             visualDisplay.removeEventListener( MouseEvent.MOUSE_DOWN, onComponentMouseDown);
             visualDisplay.removeEventListener( SelectionEvent.SELECTED, handleSelection );
             visualDisplay.removeEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
             var dataModel:Object = findModel(visualDisplay as DisplayObject);
-            dataModel.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
+            if( dataModel )
+            {
+            	dataModel.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
+            }
             
 			modelList.splice( modelList.indexOf(dataModel), 1 );
 			
             delete visuals[dataModel];
             delete models[visualDisplay];
 			
-			selectionManager.clearSelection();
+			if( selectionManager.currentlySelected.indexOf(dataModel) != -1 )
+			{
+				selectionManager.clearSelection();
+			}
         }
         
         protected function onModelChange(event:PropertyChangeEvent):void
@@ -517,6 +604,9 @@ package com.roguedevelopment.objecthandles
                 isRotated = true;
                 applyRotate( event, translation );              
             }
+            applyConstraints(translation, currentDragRole );
+            
+            applyAnchorPoint(originalGeometry.rotation, translation, currentDragRole );
             
             applyTranslation( translation );            
             
@@ -534,6 +624,117 @@ package com.roguedevelopment.objecthandles
 			{
 				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_ROTATING, true));
 			}			
+        }
+        
+        /**
+        * When resizing, there should be an "anchor point" that doesn't move.  Sometimes, we need to move the entire object around so
+        * that anchor point doesn't move.
+        * 
+        * Example:  Resizing a rectangle larger to the left.  The width should increase and the whole thing should move to the left so the
+        * 			right side stays stationary.
+        * 
+        * This method applies an x/y translation based upon a width/height translation and drag role
+        **/
+        protected function applyAnchorPoint( rotation:Number, translation:DragGeometry, currentDragRole:uint ) : void
+        {
+        	if( ! HandleRoles.isResize(currentDragRole) ) return;
+        
+        	var proportion:Point = getAnchorProportion( currentDragRole );
+        	
+        	tempMatrix.identity();
+        	tempMatrix.rotate(toRadians(rotation));
+        	
+        	temp.x = (proportion.x *  (translation.width + originalGeometry.width)) - proportion.x *  originalGeometry.width;
+        	temp.y = (proportion.y * (translation.height + originalGeometry.height)) - proportion.y * originalGeometry.height;
+        	
+        	
+        	
+        	temp = tempMatrix.transformPoint( temp );  	
+        	translation.x += temp.x;
+        	translation.y += temp.y;
+        	
+        	
+// More readable version of the optimized code above:        	
+//        		var proportion:Point = getAnchorProportion( currentDragRole );
+//        	var m:Matrix = new Matrix();      
+//        	m.rotate(toRadians(rotation));
+//        	var anchorPoint:Point = new Point( proportion.x *  originalGeometry.width, proportion.y * originalGeometry.height );
+//        	var destAnchorPoint:Point = new Point( proportion.x *  (translation.width + originalGeometry.width), proportion.y * (translation.height + originalGeometry.height) );
+//        	
+//        	var offset:Point = new Point(destAnchorPoint.x - anchorPoint.x, destAnchorPoint.y - anchorPoint.y);
+//        	
+//        	offset = m.transformPoint( offset );  	
+//        	translation.x += offset.x;
+//        	translation.y += offset.y;
+       }
+        
+             /**
+        * 
+        * Figure out which point is the anchor, and then return what the width/height proportion of 
+        * the translation applies to it.
+        * 
+        * Anchor = This is the point that shouldn't move. 
+        * I'm only going to worry about the 8 main places a handle could be, so this will get
+        * a bit weird if you have custom handles in odd places.  If that's the case for you,
+        * subclass this class and override getAnchorProportion
+        **/         
+        protected function getAnchorProportion( resizeHandleRole:uint) : Point
+        {
+        	 var anchorPoint:Point = new Point();
+            if( HandleRoles.isResizeUp(resizeHandleRole)  )
+            {
+            	if( HandleRoles.isResizeLeft( resizeHandleRole ) )
+            	{
+	            	// Upper left handle being used, so the lower right corner should not move.
+	            	anchorPoint.x = -1; 
+	            	anchorPoint.y = -1; 
+	            }
+	            else if( HandleRoles.isResizeRight( resizeHandleRole ) )
+	            {
+	            	// Upper right handle
+	            	anchorPoint.x = 0; 
+	            	anchorPoint.y = -1; 	            	
+	            }
+	            else
+	            {
+	            	anchorPoint.x = -0.5;
+	            	anchorPoint.y = -1;	            		            	
+	            }
+            }
+            else if( HandleRoles.isResizeDown(resizeHandleRole)  )
+            {
+            	if( HandleRoles.isResizeLeft( resizeHandleRole ) )
+            	{
+	            	// lower left handle
+	            	anchorPoint.x = -1;
+	            	anchorPoint.y = 0;
+	            }
+	            else if( HandleRoles.isResizeRight( resizeHandleRole ) )
+	            {
+	            	// lower right handle
+	            	anchorPoint.x = 0;
+	            	anchorPoint.y = 0;	            	
+	            }
+	            else
+	            {
+	            	// middle bottom handle
+	            	anchorPoint.x = -0.5;
+	            	anchorPoint.y = 0;	            		            	
+	            }
+            }
+            else if( HandleRoles.isResizeLeft(resizeHandleRole) )
+            {
+            	// left middle handle
+            	anchorPoint.x = -1;
+            	anchorPoint.y = -0.5;
+            }
+            else
+            {
+            	// right middle
+            	anchorPoint.x = 0;
+            	anchorPoint.y = -0.5;
+            }
+            return anchorPoint;
         }
 
 		protected function applyTranslationForSingleObject( current:Object, translation:DragGeometry , originalGeometry:DragGeometry) : void
@@ -563,10 +764,30 @@ package com.roguedevelopment.objecthandles
 				applyTranslationForSingleObject(multiSelectModel, translation , originalGeometry);
 				for each ( var subObject:Object in selectionManager.currentlySelected )
 				{
+					
+					
 					var subTranslation:DragGeometry = calculateTranslationFromMultiTranslation( translation, subObject );
+					var originalGeometry:DragGeometry = originalModelGeometry[ subObject ]
+					// At this point, constraints to the entire group have already been applied, but we need to apply per component constraints.
+					
+					applySingleObjectConstraints(subObject, originalGeometry, subTranslation, currentDragRole );
+
 					applyTranslationForSingleObject( subObject, subTranslation , originalModelGeometry[subObject] );
 				}
             }
+
+        }
+        
+        /**
+        * Convienence method for dealing with tempGeometry, again BE VERY CAREFUL when calling it.
+        **/
+        private function copyToTempGeometry( obj:Object ) : void
+        {
+			tempGeometry.height = obj.height;
+			tempGeometry.width = obj.width;
+			tempGeometry.x = obj.x;
+			tempGeometry.y = obj.y;
+			if( obj.hasOwnProperty("rotation") ) tempGeometry.rotation = obj.rotation;
 
         }
         
@@ -633,42 +854,83 @@ package com.roguedevelopment.objecthandles
 		
         protected function applyConstraints(translation:DragGeometry, currentDragRole:uint):void
         {
-			if( selectionManager.currentlySelected.length > 1 )
-			{
-				// We don't apply constraints when there's a bunch of things selected.
-				return;
-			}
-			
+        	var constraint:IConstraint;
+        	
+
             if (currentHandleConstraint != null)
             {
                 currentHandleConstraint.newInstance().applyConstraint( originalGeometry, translation, currentDragRole );
             }
-            for each ( var constraint:IConstraint in constraints )
+        	
+			if( selectionManager.currentlySelected.length > 1 )
+			{
+				// Deal with multi-select
+				for each ( constraint in multiSelectConstraints )
+				{
+					constraint.applyConstraint( originalGeometry, translation, currentDragRole );
+				} 
+				return;
+				// we'll apply per-component constraints in the applyTranslation method
+			}
+			
+			
+         	// Single object selection constraint...
+         	applySingleObjectConstraints( selectionManager.currentlySelected[0], originalGeometry, translation, currentDragRole );
+         	   
+            
+        }
+        
+        protected function applySingleObjectConstraints(modelObject:Object, originalGeometry:DragGeometry, translation:DragGeometry, currentDragRole:uint):void
+        {
+        	var constraint:IConstraint;
+        	
+        	// Default ObjectHandles wide constraints
+            for each ( constraint in defaultConstraints )
             {
                 constraint.applyConstraint( originalGeometry, translation, currentDragRole );
             }
+            
+            // Constraints that are set on a per component basis in the registerComponent call
+            var customConstraints:Array = constraints[ modelObject ];
+            if( customConstraints )
+            {
+            	for each ( constraint in customConstraints )
+            	{
+            		constraint.applyConstraint( originalGeometry, translation, currentDragRole );
+            	}
+            } 
+            
         }
         protected function applyRotate( event:MouseEvent, proposed:DragGeometry ) : void
         {
+        	
+        	
+        	
             var centerRotatedAmount:Number = toRadians(originalGeometry.rotation) - 
 											 toRadians(mouseDownRotation) + 
 											 getAngleInRadians(event.stageX, event.stageY);
             
-            var oldRotationMatrix:Matrix = new Matrix();
-            oldRotationMatrix.rotate( toRadians( originalGeometry.rotation) );
-            var oldCenter:Point = oldRotationMatrix.transformPoint(new Point(originalGeometry.width/2,originalGeometry.height/2));
+            tempMatrix.identity();
+            //var oldRotationMatrix:Matrix = new Matrix();
+            tempMatrix.rotate( toRadians( originalGeometry.rotation) );
+            var oldCenter:Point = tempMatrix.transformPoint(new Point(originalGeometry.width/2,originalGeometry.height/2));
 //          
             var newRotationMatrix:Matrix = new Matrix();
             //newRotationMatrix.rotate( toRadians(originalGeometry.rotation) );
             newRotationMatrix.translate(-oldCenter.x, -oldCenter.y);//-originalGeometry.width/2,-originalGeometry.height/2);                                    
             newRotationMatrix.rotate( centerRotatedAmount );
-            newRotationMatrix.translate(oldCenter.x, oldCenter.y);                          
+            newRotationMatrix.translate(oldCenter.x, oldCenter.y);
+            
+            
+                                      
             var newOffset:Point = newRotationMatrix.transformPoint( zero );
             
             
             proposed.x += newOffset.x;
             proposed.y += newOffset.y;
             proposed.rotation = toDegrees(centerRotatedAmount);
+            
+            
         }    
         
         
@@ -676,14 +938,14 @@ package com.roguedevelopment.objecthandles
         
          protected function getAngleInRadians(x:Number,y:Number):Number
          {
-            var m:Matrix = new Matrix();
+            tempMatrix.identity();
             var mousePos:Point = container.globalToLocal( new Point(x,y) );
 			
 			
 			
             var angle1:Number;
-            m.rotate( toRadians( originalGeometry.rotation)  );
-            var originalCenter:Point = m.transformPoint( new Point(originalGeometry.width/2, originalGeometry.height/2) );
+            tempMatrix.rotate( toRadians( originalGeometry.rotation)  );
+            var originalCenter:Point = tempMatrix.transformPoint( new Point(originalGeometry.width/2, originalGeometry.height/2) );
             originalCenter.offset( originalGeometry.x,  originalGeometry.y );
 			
 ////		This will draw some debug lines
@@ -725,10 +987,10 @@ package com.roguedevelopment.objecthandles
             // "local coordinates" = the coordinate system that is relative to the piece that moves around.
             
             // matrix describes the current rotation and helps us to go from container to local coordinates 
-            var matrix:Matrix = new Matrix();
-            matrix.rotate( toRadians( originalGeometry.rotation ) );
+            tempMatrix.identity();
+            tempMatrix.rotate( toRadians( originalGeometry.rotation ) );
             // The inverse matrix helps us to go from local to container coordinates
-            var invMatrix:Matrix = matrix.clone();
+            var invMatrix:Matrix = tempMatrix.clone();
             invMatrix.invert();
             
             // The point where we pressed the mouse down in local coordinates
@@ -742,13 +1004,13 @@ package com.roguedevelopment.objecthandles
             // So our new width is the original width plus that resize amount
             translation.width +=  resizeDistance;
             
-            applyConstraints(translation, currentDragRole );
+//            applyConstraints(translation, currentDragRole );
             
-            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-            var translationp:Point = matrix.transformPoint( zero );
-            
-            translation.x +=  translationp.x;
-            translation.y +=  translationp.y;
+//            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+//            var translationp:Point = matrix.transformPoint( zero );
+//            
+//            translation.x +=  translationp.x;
+//            translation.y +=  translationp.y;
         }
         
         protected function applyResizeDown( event:MouseEvent, translation:DragGeometry ) : void
@@ -759,10 +1021,10 @@ package com.roguedevelopment.objecthandles
             // "local coordinates" = the coordinate system that is relative to the piece that moves around.
             
             // matrix describes the current rotation and helps us to go from container to local coordinates 
-            var matrix:Matrix = new Matrix();
-            matrix.rotate( toRadians( originalGeometry.rotation ) );
+            tempMatrix.identity();
+            tempMatrix.rotate( toRadians( originalGeometry.rotation ) );
             // The inverse matrix helps us to go from local to container coordinates
-            var invMatrix:Matrix = matrix.clone();
+            var invMatrix:Matrix = tempMatrix.clone();
             invMatrix.invert();
             
             // The point where we pressed the mouse down in local coordinates
@@ -776,13 +1038,13 @@ package com.roguedevelopment.objecthandles
             // So our new width is the original width plus that resize amount
             translation.height +=  resizeDistance;
             
-            applyConstraints(translation, currentDragRole );
+//            applyConstraints(translation, currentDragRole );
             
-            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-            var translationp:Point = matrix.transformPoint( zero );
-            
-            translation.x +=  translationp.x;
-            translation.y +=  translationp.y;
+//            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+//            var translationp:Point = matrix.transformPoint( zero );
+//            
+//            translation.x +=  translationp.x;
+//            translation.y +=  translationp.y;
         }
         
         protected function applyResizeLeft( event:MouseEvent, translation:DragGeometry ) : void
@@ -793,10 +1055,10 @@ package com.roguedevelopment.objecthandles
             // "local coordinates" = the coordinate system that is relative to the piece that moves around.
             
             // matrix describes the current rotation and helps us to go from container to local coordinates 
-            var matrix:Matrix = new Matrix();
-            matrix.rotate( toRadians( originalGeometry.rotation ) );
+            tempMatrix.identity();
+            tempMatrix.rotate( toRadians( originalGeometry.rotation ) );
             // The inverse matrix helps us to go from local to container coordinates
-            var invMatrix:Matrix = matrix.clone();
+            var invMatrix:Matrix = tempMatrix.clone();
             invMatrix.invert();
             
             // The point where we pressed the mouse down in local coordinates
@@ -811,13 +1073,13 @@ package com.roguedevelopment.objecthandles
             translation.width +=  resizeDistance;
             
             
-            applyConstraints(translation, currentDragRole );
+//            applyConstraints(translation, currentDragRole );
             
-            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-            var translationp:Point = matrix.transformPoint( new Point(-translation.width,0) );
-            
-            translation.x +=  translationp.x;
-            translation.y +=  translationp.y;
+//            // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
+//            var translationp:Point = matrix.transformPoint( new Point(-translation.width,0) );
+//            
+//            translation.x +=  translationp.x;
+//            translation.y +=  translationp.y;
         }
         
         protected function applyResizeUp( event:MouseEvent, translation:DragGeometry ) : void
@@ -828,10 +1090,10 @@ package com.roguedevelopment.objecthandles
             // "local coordinates" = the coordinate system that is relative to the piece that moves around.
             
             // matrix describes the current rotation and helps us to go from container to local coordinates 
-            var matrix:Matrix = new Matrix();
-            matrix.rotate( toRadians( originalGeometry.rotation ) );
+            tempMatrix.identity();
+            tempMatrix.rotate( toRadians( originalGeometry.rotation ) );
             // The inverse matrix helps us to go from local to container coordinates
-            var invMatrix:Matrix = matrix.clone();
+            var invMatrix:Matrix = tempMatrix.clone();
             invMatrix.invert();
             
             // The point where we pressed the mouse down in local coordinates
@@ -845,13 +1107,13 @@ package com.roguedevelopment.objecthandles
             // So our new width is the original width plus that resize amount
             translation.height +=  resizeDistance;
             
-            applyConstraints(translation, currentDragRole );
+//            applyConstraints(translation, currentDragRole );
             
             // Now, that we've resize the object, we need to know where the upper left corner should get moved to because when we resize left, we have to move left.
-            var translationp:Point = matrix.transformPoint( new Point(0, -translation.height) );
-            
-            translation.x += translationp.x;
-            translation.y += translationp.y;
+//            var translationp:Point = matrix.transformPoint( new Point(0, -translation.height) );
+//            
+//            translation.x += translationp.x;
+//            translation.y += translationp.y;
         }       
         
         protected function findModel( display:DisplayObject ) : Object
@@ -1068,6 +1330,7 @@ package com.roguedevelopment.objecthandles
             currentHandleConstraint = handle.handleDescriptor.constraint;
             handleBeginDrag(event);
         }
+        
         
         protected function addToContainer( display:Sprite):void
         {

@@ -39,6 +39,19 @@ package com.roguedevelopment.objecthandles
         public var constraint:IFactory;
         
         
+        /**
+        * Creates a new handle description.
+        * 
+        * @param role a value from HandleRoles
+        * @param percentageOffset Where should this handle go as a percent of the height/width of the component?  For instance (50,50) would center it
+        * 						  and (100,0) would be the top right corner.
+        * 
+        * @param offset After the percentageOffset is applied, how many pixes should we offset the handle by?
+        * @param handleFactory An IFactory that can create the DisplayObject for this handle.  By default you get a grey box.  Customize this
+        * 					   to have different handle graphics.
+        * @param constraint Allows you to have custom constraints for some of the handles.
+        * 
+        **/ 
         public function HandleDescription(role:uint, percentageOffset:Point, offset:Point, handleFactory:IFactory = null, constraint:IFactory = null ) 
         {
             this.role = role;

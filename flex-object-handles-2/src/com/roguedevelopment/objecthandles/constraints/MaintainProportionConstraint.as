@@ -28,99 +28,58 @@ package com.roguedevelopment.objecthandles.constraints
     import com.roguedevelopment.objecthandles.DragGeometry;
     import com.roguedevelopment.objecthandles.HandleRoles;
     import com.roguedevelopment.objecthandles.IConstraint;
+    
+    import flash.geom.Matrix;
+    import flash.geom.Point;
 
 	
 	/** 
 	 * This is a constraint which causes the resized component to maintain a constant aspect ration.
-	 * 
-	 * NOTE / TODO: Currently, it doesn't work 100% correctly for rotated objects.   
+	 *    
 	 **/
 
     public class MaintainProportionConstraint implements IConstraint
     {
+    	private var origin:Point = new Point(0,0);
+    	
+    	
         public function applyConstraint(original:DragGeometry, translation:DragGeometry, resizeHandleRole:uint):void
-        {
-            //This doesn't quite work properly for rotated objects, but I'll fix that when I get more time.
+        {                   
+        	if( ! HandleRoles.isResize( resizeHandleRole ) ) return;
+        	
+            var originalProportion:Number = original.width / original.height;  // x/y
+            var possiblePos1:Point = new Point( translation.width, translation.width / originalProportion );
+            var possiblePos2:Point = new Point( translation.height * originalProportion, translation.height );
+            var originalPoint:Point = new Point( translation.width, translation.height);
+            var distance1:Number = Point.distance( possiblePos1, originalPoint );
+            var distance2:Number = Point.distance( possiblePos2, originalPoint );
             
-            var originalProportion:Number = original.width / original.height;
+            var target:Point;
             
-            if (resizeHandleRole == HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_RIGHT)
+            if( !(HandleRoles.isResizeDown(resizeHandleRole) || HandleRoles.isResizeUp(resizeHandleRole)) )
             {
-                if (translation.height * originalProportion > translation.width)
-                {
-                    if (translation.height != 0)
-                    {
-                        translation.width = translation.height * originalProportion;
-                    }
-                }
-                else
-                {
-                    if (translation.width != 0)
-                    {
-                        translation.height = translation.width / originalProportion;
-                    }
-                }
+            	// only resize left/right
+            	target =  possiblePos1 ;
             }
-            
-            if (resizeHandleRole == HandleRoles.RESIZE_UP + HandleRoles.RESIZE_RIGHT)
+            else if( !(HandleRoles.isResizeLeft(resizeHandleRole) || HandleRoles.isResizeRight(resizeHandleRole)) )
             {
-                if (translation.height * originalProportion > translation.width)
-                {
-                    if (translation.height != 0)
-                    {
-                        translation.width = translation.height * originalProportion;
-                    }
-                }
-                else
-                {
-                    if (translation.width != 0)
-                    {
-                        translation.height = translation.width / originalProportion;
-                        translation.y = -translation.height;
-                    }
-                }
+            	// only resize up/down
+            	target = possiblePos2;
             }
-            
-            if (resizeHandleRole == HandleRoles.RESIZE_DOWN + HandleRoles.RESIZE_LEFT)
+            else
             {
-                if (translation.height * originalProportion > translation.width)
-                {
-                    if (translation.height != 0)
-                    {
-                        translation.width = translation.height * originalProportion;
-                        translation.x = -translation.width;
-                    }
-                }
-                else
-                {
-                    if (translation.width != 0)
-                    {
-                        translation.height = translation.width / originalProportion;
-                    }
-                }
+            	target = distance1 < distance2 ? possiblePos1 : possiblePos2;	
             }
+             
+            translation.width = target.x;
+            translation.height = target.y;	
             
-            if (resizeHandleRole == HandleRoles.RESIZE_UP + HandleRoles.RESIZE_LEFT)
-            {
-                if (translation.height * originalProportion > translation.width)
-                {
-                    if (translation.height != 0)
-                    {
-                        translation.width = translation.height * originalProportion;
-                        //not sure why, but we only have to do this on one axis and it still works...
-                        //weird...
-                        translation.x = -translation.width;
-                    }
-                }
-                else
-                {
-                    if (translation.width != 0)
-                    {
-                        translation.height = translation.width / originalProportion;
-                    }
-                }
-            }
+
+         
         }
+
+
+   
         
     }
 }
