@@ -58,7 +58,8 @@ package com.roguedevelopment.objecthandles
     import mx.core.IFactory;
     import mx.events.PropertyChangeEvent;
     import mx.events.ScrollEvent;
-
+    
+    [Event(name="handleClicked",type="com.roguedevelopment.objecthandles.HandleClickedEvent")]
     [Event(name="objectMoved",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     [Event(name="objectResized",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
     [Event(name="objectRotated",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
@@ -1323,12 +1324,20 @@ package com.roguedevelopment.objecthandles
             if( ! handle ) { return; }
             
             
-            container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
-            container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
-
-            currentDragRole = handle.handleDescriptor.role;
-            currentHandleConstraint = handle.handleDescriptor.constraint;
-            handleBeginDrag(event);
+            // If it has NO_ROLE we just send an event as it is more like a "click"
+            if (handle.handleDescriptor.role == HandleRoles.NO_ROLE)
+            {
+                dispatchEvent( new HandleClickedEvent(event.target as IHandle) );
+            }
+            else
+            {
+                container.stage.addEventListener(MouseEvent.MOUSE_MOVE, onContainerMouseMove );
+                container.stage.addEventListener( MouseEvent.MOUSE_UP, onContainerMouseUp );
+    
+                currentDragRole = handle.handleDescriptor.role;
+                currentHandleConstraint = handle.handleDescriptor.constraint;
+                handleBeginDrag(event);
+            }
         }
         
         

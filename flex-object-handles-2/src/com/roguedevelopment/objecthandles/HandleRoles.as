@@ -30,6 +30,9 @@ package com.roguedevelopment.objecthandles
 	 **/
 	public class HandleRoles
 	{
+        // NO_ROLE just sends the event out for the click
+        public static const NO_ROLE : uint = 0;
+        
 		public static const RESIZE_UP : uint = 1;
 		public static const RESIZE_DOWN : uint = 2;
 		public static const RESIZE_LEFT : uint = 4;
