@@ -23,6 +23,11 @@ package com.roguedevelopment.objecthandles
            super(type, bubbles, cancelable);
            this.relatedObjects = relatedObjects;
        }
+       
+       public function set type(val:String):void
+       {
+       	 this.type = val;
+       }
 
    }
 }

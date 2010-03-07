@@ -23,15 +23,15 @@ package com.roguedevelopment.objecthandles.decorators
 			for each ( var other:Object in allObject )
 			{
 				if( other == o ) continue;
-				if( o.x==other.x ) drawVerticalLine(other.x,drawingCanvas);
-				if( o.y==other.y ) drawHorizontalLine(other.y,drawingCanvas);
-				if( (o.x+o.width)==(other.x+other.width) ) drawVerticalLine(other.x+other.width,drawingCanvas);
-				if( (o.y+o.height)==(other.y + other.height) ) drawHorizontalLine(other.y+other.height,drawingCanvas);
+				if( Math.abs(o.x-other.x) < 1 ) drawVerticalLine(other.x,drawingCanvas);
+				if( Math.abs(o.y-other.y) < 1 ) drawHorizontalLine(other.y,drawingCanvas);
+				if( Math.abs((o.x+o.width)-(other.x+other.width)) < 1 ) drawVerticalLine(other.x+other.width,drawingCanvas);
+				if( Math.abs((o.y+o.height)-(other.y + other.height)) < 1 ) drawHorizontalLine(other.y+other.height,drawingCanvas);
 
-				if( o.x==(other.width+other.x) ) drawVerticalLine(o.x,drawingCanvas);
-				if( o.y==(other.y+other.height) ) drawHorizontalLine(o.y,drawingCanvas);
-				if( (o.x+o.width)==other.x ) drawVerticalLine(o.x+o.width,drawingCanvas);
-				if( (o.y+o.height)==other.y ) drawHorizontalLine(o.y+o.height,drawingCanvas);
+				if( Math.abs(o.x-(other.width+other.x)) < 1 ) drawVerticalLine(o.x,drawingCanvas);
+				if( Math.abs(o.y-(other.y+other.height)) < 1 ) drawHorizontalLine(o.y,drawingCanvas);
+				if( Math.abs((o.x+o.width)-other.x) < 1 ) drawVerticalLine(o.x+o.width,drawingCanvas);
+				if( Math.abs((o.y+o.height)-other.y) < 1 ) drawHorizontalLine(o.y+o.height,drawingCanvas);
 
 			}
 			

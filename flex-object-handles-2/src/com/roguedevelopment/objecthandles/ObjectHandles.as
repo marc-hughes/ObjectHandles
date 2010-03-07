@@ -90,7 +90,7 @@ package com.roguedevelopment.objecthandles
 		 **/
 		public var enableMultiSelect:Boolean=true;
 		
-        public var selectionManager:ObjectHandlesSelectionManager;
+        [Bindable] public var selectionManager:ObjectHandlesSelectionManager;
 		
         protected var handleFactory:IFactory;
         
@@ -564,10 +564,20 @@ package com.roguedevelopment.objecthandles
                 updateHandlePositions(model);
             }
         }
+        
+        // Pulling these 4 variables to a member level var so we allocate less of them, this method gets called a lot
+        // so a ton of objects were being created and eventually destroyed leading to some choppiness.
+        protected var translation:DragGeometry = new DragGeometry();
+       
         protected function onContainerMouseMove( event:MouseEvent ) : void
         {
             if( ! isDragging ) { return; }
-            var translation:DragGeometry = new DragGeometry();
+            //var translation:DragGeometry = new DragGeometry();
+            translation.height=0;
+            translation.width=0;
+            translation.x=0;
+            translation.y=0;
+            translation.rotation=0;
             
             if( HandleRoles.isMove( currentDragRole ) )
             {
@@ -607,7 +617,7 @@ package com.roguedevelopment.objecthandles
             }
             applyConstraints(translation, currentDragRole );
             
-            applyAnchorPoint(originalGeometry.rotation, translation, currentDragRole );
+            applyAnchorPoint(originalGeometry, translation, currentDragRole );
             
             applyTranslation( translation );            
             
@@ -615,15 +625,17 @@ package com.roguedevelopment.objecthandles
 			
 			if (isMoved)
 			{
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_MOVING, true));
+								
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
 			}
 			else if (isResized)
 			{
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_RESIZING, true));
+				
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_RESIZING,true) );
 			}
 			else if (isRotated)
-			{
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected, ObjectChangedEvent.OBJECT_ROTATING, true));
+			{				
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_ROTATING,true) );
 			}			
         }
         
@@ -636,37 +648,59 @@ package com.roguedevelopment.objecthandles
         * 
         * This method applies an x/y translation based upon a width/height translation and drag role
         **/
-        protected function applyAnchorPoint( rotation:Number, translation:DragGeometry, currentDragRole:uint ) : void
+        protected function applyAnchorPoint( original:DragGeometry, translation:DragGeometry, currentDragRole:uint ) : void
         {
-        	if( ! HandleRoles.isResize(currentDragRole) ) return;
+        	if( HandleRoles.isRotate( currentDragRole ) )
+        	{
+        		var mid:Point =  new Point(original.width/2, original.height/2) ;
+        		// We want to rotate around the center instead of around the upper left corner.
+        		tempMatrix.identity();
+        		tempMatrix.rotate( toRadians(original.rotation) );
+        		temp = tempMatrix.transformPoint( mid ) // this is where the center was.
+        		
+        		tempMatrix.identity();
+        		tempMatrix.rotate( toRadians(original.rotation + translation.rotation) );
+        		mid = tempMatrix.transformPoint( mid ); // This is where the new center should be.
+        		
+        		translation.x = temp.x - mid.x;
+        		translation.y = temp.y - mid.y;
+        		
+        	}
+        	
+        	
+        	if( HandleRoles.isResize(currentDragRole)  ) 
+        	{
         
-        	var proportion:Point = getAnchorProportion( currentDragRole );
+	        	var proportion:Point = getAnchorProportion( currentDragRole );
+	        	
+	        	tempMatrix.identity();
+	        	tempMatrix.rotate(toRadians(original.rotation));
+	        	
+	        	temp.x = (proportion.x *  (translation.width + originalGeometry.width)) - proportion.x *  originalGeometry.width;
+	        	temp.y = (proportion.y * (translation.height + originalGeometry.height)) - proportion.y * originalGeometry.height;
+	        	
+	        	
+	        	
+	        	temp = tempMatrix.transformPoint( temp );
+	        	
+	        	translation.x += temp.x;
+	        	translation.y += temp.y;
+	        	
+	        	
+	// More readable version of the optimized code above:        	
+	//        		var proportion:Point = getAnchorProportion( currentDragRole );
+	//        	var m:Matrix = new Matrix();      
+	//        	m.rotate(toRadians(rotation));
+	//        	var anchorPoint:Point = new Point( proportion.x *  originalGeometry.width, proportion.y * originalGeometry.height );
+	//        	var destAnchorPoint:Point = new Point( proportion.x *  (translation.width + originalGeometry.width), proportion.y * (translation.height + originalGeometry.height) );
+	//        	
+	//        	var offset:Point = new Point(destAnchorPoint.x - anchorPoint.x, destAnchorPoint.y - anchorPoint.y);
+	//        	
+	//        	offset = m.transformPoint( offset );  	
+	//        	translation.x += offset.x;
+	//        	translation.y += offset.y;
+        	}
         	
-        	tempMatrix.identity();
-        	tempMatrix.rotate(toRadians(rotation));
-        	
-        	temp.x = (proportion.x *  (translation.width + originalGeometry.width)) - proportion.x *  originalGeometry.width;
-        	temp.y = (proportion.y * (translation.height + originalGeometry.height)) - proportion.y * originalGeometry.height;
-        	
-        	
-        	
-        	temp = tempMatrix.transformPoint( temp );  	
-        	translation.x += temp.x;
-        	translation.y += temp.y;
-        	
-        	
-// More readable version of the optimized code above:        	
-//        		var proportion:Point = getAnchorProportion( currentDragRole );
-//        	var m:Matrix = new Matrix();      
-//        	m.rotate(toRadians(rotation));
-//        	var anchorPoint:Point = new Point( proportion.x *  originalGeometry.width, proportion.y * originalGeometry.height );
-//        	var destAnchorPoint:Point = new Point( proportion.x *  (translation.width + originalGeometry.width), proportion.y * (translation.height + originalGeometry.height) );
-//        	
-//        	var offset:Point = new Point(destAnchorPoint.x - anchorPoint.x, destAnchorPoint.y - anchorPoint.y);
-//        	
-//        	offset = m.transformPoint( offset );  	
-//        	translation.x += offset.x;
-//        	translation.y += offset.y;
        }
         
              /**
@@ -729,17 +763,19 @@ package com.roguedevelopment.objecthandles
             	anchorPoint.x = -1;
             	anchorPoint.y = -0.5;
             }
-            else
+            else 
             {
             	// right middle
             	anchorPoint.x = 0;
             	anchorPoint.y = -0.5;
             }
+
             return anchorPoint;
         }
 
 		protected function applyTranslationForSingleObject( current:Object, translation:DragGeometry , originalGeometry:DragGeometry) : void
 		{
+			
 			
 			if( current.hasOwnProperty("x") ) current.x = translation.x + originalGeometry.x;
 			if( current.hasOwnProperty("y") ) current.y = translation.y + originalGeometry.y;
@@ -927,8 +963,8 @@ package com.roguedevelopment.objecthandles
             var newOffset:Point = newRotationMatrix.transformPoint( zero );
             
             
-            proposed.x += newOffset.x;
-            proposed.y += newOffset.y;
+           // proposed.x += newOffset.x;
+           // proposed.y += newOffset.y;
             proposed.rotation = toDegrees(centerRotatedAmount);
             
             
@@ -1169,21 +1205,39 @@ package com.roguedevelopment.objecthandles
         
 		protected var lastSelectedModel:Object;
 		
+		
+		protected function getCurrentSelection() : Array
+		{
+			var rv:Array = [];
+			for each ( var model:Object in selectionManager.currentlySelected )
+			{
+				if( model in visuals)
+				{
+					rv.push( model );
+				}				
+			}			
+			return rv;
+		}
+		
+		
         protected function setupHandles(  ) : void
         {   
-			if( selectionManager.currentlySelected.length == 0 )
+        	
+        	var selection:Array = getCurrentSelection();
+        	trace("setupHandels",selection.length);
+			if( selection.length == 0 )
 			{
 				removeHandles( lastSelectedModel );
 				removeHandles( multiSelectModel );
 			}
-			else if( selectionManager.currentlySelected.length == 1 )
+			else if( selection.length == 1 )
 			{
 				// single object selected
-				createHandlesFor( selectionManager.currentlySelected[0] );
-				updateHandlePositions(selectionManager.currentlySelected[0]);
+				createHandlesFor( selection[0] );
+				updateHandlePositions(selection[0]);
 				removeHandles( multiSelectModel );
 				removeHandles( lastSelectedModel );
-				lastSelectedModel = selectionManager.currentlySelected[0] ;
+				lastSelectedModel = selection[0] ;
 			}
 			else
 			{

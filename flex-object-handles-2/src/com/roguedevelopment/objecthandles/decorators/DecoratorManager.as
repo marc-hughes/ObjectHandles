@@ -32,6 +32,15 @@ package com.roguedevelopment.objecthandles.decorators
 			
 		}
 		
+		public function updateNow() : void
+		{
+			for each(var decorator:IDecorator in decorators )
+			{				
+				decorator.updateSelected( objectHandles.modelList, objectHandles.selectionManager.currentlySelected, subDrawLayers[decorator] );
+				decorator.updatePosition( objectHandles.modelList, objectHandles.selectionManager.currentlySelected,objectHandles.modelList ,subDrawLayers[decorator] );
+			}			
+		}
+		
 		protected function onSelectionChanged(event:Event):void
 		{
 			for each(var decorator:IDecorator in decorators )
@@ -55,8 +64,7 @@ package com.roguedevelopment.objecthandles.decorators
 			drawLayer.addChild(subDrawLayer);
 			
 			decorators.push(decorator);
-			subDrawLayers[decorator] = subDrawLayer;
-			
+			subDrawLayers[decorator] = subDrawLayer;			
 		}
 
 
