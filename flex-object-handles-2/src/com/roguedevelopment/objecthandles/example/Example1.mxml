@@ -47,7 +47,7 @@ This is an example and not a part of the core ObjectHandles library.
 			import com.roguedevelopment.objecthandles.ObjectHandles;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
 			
-			import mx.skins.spark.ContainerBorderSkin;
+//			import mx.skins.spark.ContainerBorderSkin;
 			
 			protected var objectHandles:ObjectHandles;
 			
@@ -79,15 +79,15 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxHeight = 200;
 				
 				objectHandles.addEventListener(ObjectChangedEvent.OBJECT_MOVED, onObjectMoved );
-				objectHandles.constraints.push( constraint );							
+				objectHandles.addDefaultConstraint( constraint );							
 			}
 			
 			protected function backgroundClick(event:MouseEvent) : void
 			{		
-				if( event.target is ContainerBorderSkin )
-				{				
-					objectHandles.selectionManager.clearSelection();
-				}
+//				if( event.target is ContainerBorderSkin )
+//				{				
+//					objectHandles.selectionManager.clearSelection();
+//				}
 			}
 			
 			protected function onObjectMoved(event:ObjectChangedEvent):void

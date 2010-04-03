@@ -44,5 +44,6 @@ package com.roguedevelopment.objecthandles
 		function set width(value:Number):void;
 		function get height():Number;
 		function set height(value:Number):void;
-	}
+		function get rotation():Number;
+		function set rotation(value:Number):void;	}
 }

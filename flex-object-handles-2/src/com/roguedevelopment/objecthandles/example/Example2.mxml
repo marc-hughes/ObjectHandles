@@ -77,14 +77,14 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxWidth = 200;
 				constraint.minHeight = 20;
 				constraint.maxHeight = 200;
-				objectHandles.constraints.push( constraint );
+				objectHandles.addDefaultConstraint( constraint );
 				
 				var constraint2:MovementConstraint = new MovementConstraint();
 				constraint2.minX = 20;
 				constraint2.minY = 20;
 				constraint2.maxX = 300;
 				constraint2.maxY = 300;
-				objectHandles.constraints.push( constraint2 );				
+				objectHandles.addDefaultConstraint( constraint2 );				
 			}
 		]]>
 	</mx:Script>

@@ -89,7 +89,7 @@ package com.roguedevelopment.objecthandles
 				graphics.beginFill(0xaaaaaa,1);
 			}
 			
-			graphics.drawRect(0,0,10,10);
+			graphics.drawRect(-5,-5,10,10);
 			graphics.endFill();
 			
 		}

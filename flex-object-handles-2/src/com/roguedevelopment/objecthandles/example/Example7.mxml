@@ -86,7 +86,7 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxWidth = 500;
 				constraint.minHeight = 20;
 				constraint.maxHeight = 200;
-				objectHandles.constraints.push( constraint );							
+				objectHandles.addDefaultConstraint( constraint );							
 			}
 		]]>
 	</mx:Script>				

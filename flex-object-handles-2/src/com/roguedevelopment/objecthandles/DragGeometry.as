@@ -38,6 +38,7 @@ package com.roguedevelopment.objecthandles
 		[Bindable] public var width:Number=0;
 		[Bindable] public var height:Number=0;
 		[Bindable] public var rotation:Number=0;
+		[Bindable] public var isLocked:Boolean = false;
 
 		public function clone() : DragGeometry
 		{

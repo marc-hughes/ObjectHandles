@@ -27,7 +27,7 @@ package com.roguedevelopment.objecthandles
 				graphics.beginFill(0x51ffee,1);
 			}
 			
-			graphics.drawCircle(7,7,5);
+			graphics.drawCircle(0,0,6);
 			graphics.endFill();
 		}
 		

@@ -15,5 +15,6 @@ package com.roguedevelopment.objecthandles.example
 		[Bindable] public var height:Number = 50;
 		[Bindable] public var width:Number = 50;
 		[Bindable] public var rotation:Number = 0;
+		[Bindable] public var isLocked:Boolean = false;
 	}
 }

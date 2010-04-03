@@ -40,6 +40,7 @@
 					flexModel1.y = 150;
 					flexModel1.width = 50;
 					flexModel1.height = 50;
+					flexModel1.isLocked = true;
 					objectHandles.registerComponent( flexModel1, flexShape1 );
 					
 					

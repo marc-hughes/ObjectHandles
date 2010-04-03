@@ -478,7 +478,10 @@ package com.roguedevelopment.objecthandles
                 case "width":
                 case "height":
                 case "rotation": updateHandlePositions(event.target);
-            }
+					break;
+				
+				case "isLocked": redrawHandle(event.target);
+			}
         }
         
         protected function onSelectionAdded( event:SelectionEvent ) : void
@@ -570,8 +573,22 @@ package com.roguedevelopment.objecthandles
         protected var translation:DragGeometry = new DragGeometry();
        
         protected function onContainerMouseMove( event:MouseEvent ) : void
-        {
-            if( ! isDragging ) { return; }
+        {			
+			var locked:Boolean = false;
+			
+			if( selectionManager.currentlySelected.length > 0)
+			{
+				for each ( var obj:Object in selectionManager.currentlySelected )
+				{
+					 
+					if( obj.hasOwnProperty("isLocked") && obj["isLocked"] )
+					{
+						locked = true;
+					}
+				}
+			}
+			
+            if( (! isDragging) || locked) { return; }
             //var translation:DragGeometry = new DragGeometry();
             translation.height=0;
             translation.width=0;
@@ -825,6 +842,7 @@ package com.roguedevelopment.objecthandles
 			tempGeometry.x = obj.x;
 			tempGeometry.y = obj.y;
 			if( obj.hasOwnProperty("rotation") ) tempGeometry.rotation = obj.rotation;
+			if( obj.hasOwnProperty("isLocked") ) tempGeometry.isLocked = obj.isLocked;
 
         }
         
@@ -1178,7 +1196,7 @@ package com.roguedevelopment.objecthandles
             	if(selectionManager.isSelected(model) && selectionManager.currentlySelected.length > 1) {
             		selectionManager.removeFromSelected(model);
             	} else {
-            		selectionManager.addToSelected(model);
+					selectionManager.addToSelected(model);
             	}            
             } 
 			else 
@@ -1224,7 +1242,8 @@ package com.roguedevelopment.objecthandles
         {   
         	
         	var selection:Array = getCurrentSelection();
-        	trace("setupHandels",selection.length);
+			
+			
 			if( selection.length == 0 )
 			{
 				removeHandles( lastSelectedModel );
@@ -1337,24 +1356,42 @@ package com.roguedevelopment.objecthandles
             {                       
                 if( model.hasOwnProperty("rotation") )
                 {
-                    var m:Matrix = new Matrix(  1, // first four form partial identity matrix
-                                                0, 
-                                                1, 
-                                                0, 
-                                                (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x, // The tX 
-                                                (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y); // the tY 
-                    m.rotate( toRadians( model.rotation ) );
-                    var p:Point = m.transformPoint( zero );                                             
-                    handle.x = p.x + model.x - Math.floor(handle.width / 2) - scroll.x;
-                    handle.y = p.y + model.y - Math.floor(handle.height / 2) - scroll.y;
+					tempMatrix.identity();					
+					tempMatrix.translate( (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x, // The tX 
+										  (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y);
+					
+					//tempMatrix.translate(- Math.floor(handle.width / 2), - Math.floor(handle.height / 2));
+					tempMatrix.rotate( toRadians( model.rotation ) );
+					tempMatrix.translate( model.x, model.y);
+					
+					
+					
+					
+					var p2:Point = tempMatrix.transformPoint( zero );
+										 
+					handle.rotation = model.rotation;
+                    handle.x = p2.x  - scroll.x ;
+                    handle.y = p2.y  - scroll.y ;
                 }
                 else
                 {
-                    handle.x =  model.x - Math.floor(handle.width / 2) + (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x - scroll.x;
-                    handle.y =  model.y - Math.floor(handle.height / 2) + (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y - scroll.y;
+                    handle.x =  model.x  + (model.width * handle.handleDescriptor.percentageOffset.x / 100)  + handle.handleDescriptor.offset.x - scroll.x;
+                    handle.y =  model.y  + (model.height * handle.handleDescriptor.percentageOffset.y / 100)  + handle.handleDescriptor.offset.y - scroll.y;
                 }
             }   
         }
+		
+		public function redrawHandle( model:Object ) : void
+		{
+			var h:Array = handles[model];
+			
+			if( ! h ) { return; }
+			
+			for each ( var handle:IHandle in h )
+			{
+				handle.redraw();
+			}			
+		}
         
         protected static function toRadians( degrees:Number ) :Number
         {

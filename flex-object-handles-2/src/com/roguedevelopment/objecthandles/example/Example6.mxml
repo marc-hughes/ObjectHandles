@@ -44,16 +44,18 @@ This is an example and not a part of the core ObjectHandles library.
 		<mx:Script>
 		<![CDATA[
 			import com.roguedevelopment.objecthandles.CircleHandle;
-			
+			import com.roguedevelopment.objecthandles.HandleDescription;
+			import com.roguedevelopment.objecthandles.HandleRoles;
+			import com.roguedevelopment.objecthandles.ObjectHandles;
+			import com.roguedevelopment.objecthandles.SpriteHandle;
 			import com.roguedevelopment.objecthandles.constraints.MovementConstraint;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
-			import com.roguedevelopment.objecthandles.SpriteHandle;
-			import com.roguedevelopment.objecthandles.ObjectHandles;
-			import mx.effects.Tween;
-			import mx.effects.Move;
-			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
 			import com.roguedevelopment.objecthandles.example.SimpleDataModel;
 			import com.roguedevelopment.objecthandles.example.SimpleFlexShape;
+			import com.roguedevelopment.objecthandles.example.SimpleSpriteShape;
+			
+			import mx.effects.Move;
+			import mx.effects.Tween;
 			
 			protected var objectHandles:ObjectHandles;
 			
@@ -64,6 +66,10 @@ This is an example and not a part of the core ObjectHandles library.
 			{
 				objectHandles = new ObjectHandles( this , null, new ClassFactory(CircleHandle));
 				
+//				objectHandles.defaultHandles.push( new HandleDescription(HandleRoles.MOVE, 
+//										new Point(50,0), 
+//										new Point(0,-10), 
+//										new ClassFactory(GrabberHandle) )
 				
 				flexModel1 = new SimpleDataModel();
 				flexModel1.x = 50;
@@ -84,7 +90,7 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxWidth = 500;
 				constraint.minHeight = 20;
 				constraint.maxHeight = 200;
-				objectHandles.constraints.push( constraint );							
+				objectHandles.addDefaultConstraint( constraint );							
 			}
 		]]>
 	</mx:Script>				

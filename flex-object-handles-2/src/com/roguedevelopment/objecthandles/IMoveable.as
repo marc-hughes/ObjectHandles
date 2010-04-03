@@ -33,6 +33,5 @@ package com.roguedevelopment.objecthandles
 		
 		function set x(val : Number):void;
 		function set y(val : Number):void;
-		
 	}
 }

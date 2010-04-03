@@ -48,7 +48,7 @@ This is an example and not a part of the core ObjectHandles library.
 			import com.roguedevelopment.objecthandles.decorators.AlignmentDecorator;
 			import com.roguedevelopment.objecthandles.decorators.DecoratorManager;
 			
-			import mx.skins.spark.ContainerBorderSkin;
+//			import mx.skins.spark.ContainerBorderSkin;
 			
 			protected var objectHandles:ObjectHandles;
 			
@@ -96,7 +96,7 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxWidth = 500;
 				constraint.minHeight = 20;
 				constraint.maxHeight = 200;
-				objectHandles.constraints.push( constraint );		
+				objectHandles.addDefaultConstraint( constraint );		
 				
 				decoratorManager = new DecoratorManager( objectHandles, drawingLayer );
 				decoratorManager.addDecorator( new AlignmentDecorator() );				
@@ -104,10 +104,10 @@ This is an example and not a part of the core ObjectHandles library.
 			
 			protected function backgroundClick(event:MouseEvent) : void
 			{		
-				if( event.target is ContainerBorderSkin )
-				{				
-					objectHandles.selectionManager.clearSelection();
-				}
+//				if( event.target is ContainerBorderSkin )
+//				{				
+//					objectHandles.selectionManager.clearSelection();
+//				}
 			}
 		]]>
 	</mx:Script>				

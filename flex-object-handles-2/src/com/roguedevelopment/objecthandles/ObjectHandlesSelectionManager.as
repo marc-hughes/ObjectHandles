@@ -38,18 +38,35 @@ package com.roguedevelopment.objecthandles
 	{
 		public var currentlySelected:Array = [];
 		
+		
 		public function ObjectHandlesSelectionManager()
-		{
-		}
+		{}
 		
 		public function addToSelected( model:Object ) : void
 		{
+
 			if( currentlySelected.indexOf( model ) != -1 ) { return; } // already selected
+			
+			
+			if( currentlySelected.length > 0 ){
+				var locked:Boolean = isSelectionLocked();
+				
+				if( locked && !model.isLocked ) {
+					return;
+				}
+				
+				if( !locked && model.isLocked ) {
+					return;
+				}
+			}
+			
+				
 			
 			currentlySelected.push(model);
 			var event:SelectionEvent = new SelectionEvent( SelectionEvent.ADDED_TO_SELECTION );
 			event.targets.push( model );
 			dispatchEvent( event );
+			
 		}
 		
 		public function isSelected( model:Object ) : Boolean
@@ -84,6 +101,20 @@ package com.roguedevelopment.objecthandles
 			currentlySelected = [];						
 			dispatchEvent( event );			
 		}
+
+
+		public function isSelectionLocked():Boolean {
+			for each(var model:Object in currentlySelected) {
+				if(model.hasOwnProperty("isLocked")) {
+					if(model.isLocked) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		}		
+		
 		
 		public function getGeometry() : DragGeometry
 		{
@@ -101,6 +132,7 @@ package com.roguedevelopment.objecthandles
 				if( obj.hasOwnProperty("width") ) rv.width = obj["width"];
 				if( obj.hasOwnProperty("height") ) rv.height = obj["height"];
 				if( obj.hasOwnProperty("rotation") ) rv.rotation = obj["rotation"];
+				if( obj.hasOwnProperty("isLocked") ) rv.isLocked = obj["isLocked"];
 				
 				return rv;
 			} else {
@@ -174,6 +206,7 @@ package com.roguedevelopment.objecthandles
 			rv.y = ly1;
 			rv.width = lx2 - lx1;
 			rv.height = ly2 - ly1;
+			rv.isLocked = isSelectionLocked();
 			return rv;
 		}
 		
@@ -194,6 +227,7 @@ package com.roguedevelopment.objecthandles
 				if( obj.hasOwnProperty("width") ) rv.width = obj["width"];
 				if( obj.hasOwnProperty("height") ) rv.height = obj["height"];
 				if( obj.hasOwnProperty("rotation") ) rv.rotation = obj["rotation"];
+				if( obj.hasOwnProperty("isLocked") ) rv.isLocked = obj["isLocked"];
 				
 				return rv;
 		}
