@@ -26,10 +26,10 @@
 	<class>com.roguedevelopment.objecthandles.constraints.SizeConstraint</class>
 	<class>com.roguedevelopment.objecthandles.Flex3ChildManager</class>
 	<class>com.roguedevelopment.objecthandles.Flex4ChildManager</class>
-	<class>com.roguedevelopment.objecthandles.Flex4HandleFactory</class>
-	<class>com.roguedevelopment.objecthandles.VisualElementHandle</class>
-	
-	
-	
+	<class>com.roguedevelopment.objecthandles.Flex4HandleFactory</class>		
+	<class>com.roguedevelopment.objecthandles.decorators.DecoratorManager</class>
+	<class>com.roguedevelopment.objecthandles.decorators.AlignmentDecorator</class>	
+	<class>com.roguedevelopment.objecthandles.decorators.WebDecorator</class>	
+	<class>com.roguedevelopment.objecthandles.decorators.OutlineDecorator</class>	
 </include-classes>
 </flex-config>

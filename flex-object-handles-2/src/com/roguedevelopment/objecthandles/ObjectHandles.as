@@ -30,6 +30,7 @@
  *    Aaron Winkler
  *    Gregory Tappero
  *    Andrew Westberg
+ *    Erik Hoffmann
  * 
  * -------------------------------------------------------------------------------------------
  * 
@@ -105,7 +106,7 @@ package com.roguedevelopment.objecthandles
 		/**
 		 * These are the handles that appear around the bounding box when multiple objects are selected.
 		 **/
-		public var multiSelectHandles:Array = [];
+		private var _multiSelectHandles:Array = [];
 		
         // Key = a Model, value = an Array of handles
         protected var handles:Dictionary = new Dictionary(); 
@@ -138,6 +139,7 @@ package com.roguedevelopment.objecthandles
         protected var currentDragRole:uint = 0;
 		
         protected var mouseDownPoint:Point;
+		protected var containerMouseDownPoint:Point;
         protected var mouseDownRotation:Number;
         protected var originalGeometry:DragGeometry;
         
@@ -319,6 +321,26 @@ package com.roguedevelopment.objecthandles
             
         }
         
+
+		public function get multiSelectHandles():Array
+		{
+			return _multiSelectHandles;
+		}
+
+		public function set multiSelectHandles(value:Array):void
+		{
+			var ind:int = modelList.indexOf( multiSelectModel );
+			if( ind != -1 )	modelList.splice(ind,1);
+			
+			
+			multiSelectModel.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onModelChange );
+						
+			
+			_multiSelectHandles = value;
+			registerComponent(multiSelectModel,null,_multiSelectHandles,false);
+			
+		}
+
 		/**
 		 * Registers a component with the ObjectHandle manager.
 		 * 
@@ -405,26 +427,70 @@ package com.roguedevelopment.objecthandles
         {
         	return visuals[model];
         }
-        
-        protected function onKeyDown(event:KeyboardEvent):void
-        {
-            var t:DragGeometry = new DragGeometry();
-            switch(event.keyCode )
-            {
-                case Keyboard.UP : t.y --; break;
-                case Keyboard.DOWN : t.y ++; break;
-                case Keyboard.RIGHT : t.x ++; break;
-                case Keyboard.LEFT : t.x --; break;             
-                default:return; 
-            }
-            
+		
+		protected function onKeyDown(event:KeyboardEvent):void		
+		{
+			var t:DragGeometry = new DragGeometry();	
+			switch(event.keyCode )
+			{
+				case Keyboard.UP : t.y --; break;	
+				case Keyboard.DOWN : t.y ++; break;
+				case Keyboard.RIGHT : t.x ++; break;
+				case Keyboard.LEFT : t.x --; break;           
+				default:return;
+			}
+
+			//Respect locked			
+			var locked:Boolean = false;        			
+			if( selectionManager.currentlySelected.length > 0)				
+			{				
+				for each ( var obj:Object in selectionManager.currentlySelected )				
+				{
+					if( obj.hasOwnProperty("isLocked") && obj["isLocked"] )		
+					{	
+						locked = true;	
+					}
+				}
+			}
+
+			if( locked) { return; }
+
+			// saving old coordinates			
+			originalModelGeometry = new Dictionary();			
+			for each(var current:Object in selectionManager.currentlySelected) 
+			{				
+				originalModelGeometry[current] = selectionManager.getGeometryForObject(current);				
+			}
+
 			originalGeometry = selectionManager.getGeometry();
-                                
-            
-            applyConstraints( t, HandleRoles.MOVE );
-            
-            applyTranslation( t );
-        }
+			applyConstraints( t, HandleRoles.MOVE );
+			applyTranslation( t );
+			
+			
+			dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
+			
+			
+		}
+//        
+//        protected function onKeyDown(event:KeyboardEvent):void
+//        {
+//            var t:DragGeometry = new DragGeometry();
+//            switch(event.keyCode )
+//            {
+//                case Keyboard.UP : t.y --; break;
+//                case Keyboard.DOWN : t.y ++; break;
+//                case Keyboard.RIGHT : t.x ++; break;
+//                case Keyboard.LEFT : t.x --; break;             
+//                default:return; 
+//            }
+//            
+//			originalGeometry = selectionManager.getGeometry();
+//                                
+//            
+//            applyConstraints( t, HandleRoles.MOVE );
+//            
+//            applyTranslation( t );
+//        }
         
         /**
          * Returns true if the given model should have a movement handle.
@@ -641,13 +707,11 @@ package com.roguedevelopment.objecthandles
             event.updateAfterEvent();    
 			
 			if (isMoved)
-			{
-								
+			{								
 				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
 			}
 			else if (isResized)
-			{
-				
+			{				
 				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_RESIZING,true) );
 			}
 			else if (isRotated)
@@ -1024,9 +1088,9 @@ package com.roguedevelopment.objecthandles
         {           
             temp.x = event.stageX;
             temp.y = event.stageY;
-            var localDown:Point = container.globalToLocal( mouseDownPoint );
+            //var localDown:Point = container.globalToLocal( mouseDownPoint );
             var current:Point = container.globalToLocal( temp );
-            var mouseDelta:Point = new Point( current.x - localDown.x, current.y - localDown.y );
+            var mouseDelta:Point = new Point( current.x - containerMouseDownPoint.x, current.y - containerMouseDownPoint.y );
             
             
             translation.x = mouseDelta.x;
@@ -1210,7 +1274,8 @@ package com.roguedevelopment.objecthandles
         protected function handleBeginDrag( event : MouseEvent ) : void
         {
             isDragging = true;  
-            mouseDownPoint = new Point( event.stageX, event.stageY );           
+            mouseDownPoint = new Point( event.stageX, event.stageY );
+			containerMouseDownPoint = container.globalToLocal( mouseDownPoint );
             originalGeometry = selectionManager.getGeometry();
             
             // saving old coordinates

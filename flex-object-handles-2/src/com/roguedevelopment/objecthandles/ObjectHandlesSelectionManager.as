@@ -51,12 +51,15 @@ package com.roguedevelopment.objecthandles
 			if( currentlySelected.length > 0 ){
 				var locked:Boolean = isSelectionLocked();
 				
-				if( locked && !model.isLocked ) {
-					return;
-				}
-				
-				if( !locked && model.isLocked ) {
-					return;
+				if( model.hasOwnProperty("isLocked") )
+				{
+					if( locked && !model.isLocked ) {
+						return;
+					}
+					
+					if( !locked && model.isLocked ) {
+						return;
+					}
 				}
 			}
 			

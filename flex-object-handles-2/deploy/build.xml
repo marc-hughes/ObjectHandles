@@ -26,17 +26,21 @@
     <target name="build-swc">
     
     	<exec executable="${flex3.sdk}bin/compc">
+		    <arg value="-load-config=${flex3.sdk}/frameworks/flex-config.xml"/>    	  
 		    <arg value="-load-config+=swcconfig.xml"/>
+		    <arg value="-target-player=9.0.0"/>		    		    
  	    </exec>
  	    
  	    <move file="ObjectHandles.swc" toFile="ObjectHandles-2.0.${oh.build.num}_FLEX3.swc" />
 
     	<exec executable="${flex4.sdk}bin/compc">
+    	  <arg value="-load-config=${flex4.sdk}/frameworks/flex-config.xml"/>    	  
 		    <arg value="-load-config+=swcconfig-flex4.xml"/>
+		    <arg value="-target-player=10.0.0"/>		    		    
  	    </exec>
  	    
  	    <move file="ObjectHandles.swc" toFile="ObjectHandles-2.0.${oh.build.num}_FLEX4.swc" />
-    	
+    
     </target>
 
 	<target name="package-source">
