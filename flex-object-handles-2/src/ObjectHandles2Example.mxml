@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical"
-	verticalGap="0"
-	paddingBottom="10"
-	paddingLeft="10"
-	paddingTop="0"
-	paddingRight="10" 
-	backgroundGradientAlphas="[1.0, 1.0]" 
-	backgroundGradientColors="[#444444, #616161]"
-	backgroundColor="#ffffff"
-	creationComplete="init()"
-	xmlns:example="com.roguedevelopment.objecthandles.example.*" viewSourceURL="srcview/index.html">
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+	
+				xmlns:example="com.roguedevelopment.objecthandles.example.*" 
+				xmlns:mx="library://ns.adobe.com/flex/mx">
 
+	<s:Rect width="100%" height="100%" radiusX="10" radiusY="10">
+		<s:fill>
+			<s:SolidColor color="#444444" />
+		</s:fill>
+	</s:Rect>
  
-	<mx:LinkBar x="270" y="347" dataProvider="{viewStack}"  fontWeight="bold" fontSize="15">
+	<mx:LinkBar horizontalCenter="0" top="2" dataProvider="{viewStack}"  fontWeight="bold" fontSize="15" color="#ffffff">
 	</mx:LinkBar>
 	
-	<mx:ViewStack width="100%" height="100%" id="viewStack" >
-		<example:Example1 label="Example 1" scaleX="0.8" scaleY="0.8"  id="example1"/>
-		<example:Example2 label="Example 2"/>
-		<example:Example3 label="Example 3"/>
-		<example:Example4 label="Example 4"/>
-		<example:Example5 label="Example 5"/>
-		<example:Example6 label="Example 6"/>
-		<example:Example7 label="Example 7"/>
-		<example:Example8 label="Example 8"/>
+	<mx:ViewStack width="100%" top="30" bottom="8" left="8" right="8" id="viewStack"  >
+		<example:Example1 label="Example 1"  id="example1" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<example:Example2 label="Example 2" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<example:Example3 label="Example 3" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<example:Example4 label="Example 4" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<example:Example5 label="Example 5" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<example:Example6 label="Example 6" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<!-- <example:Example7 label="Example 7"/> -->
+		<example:Example8 label="Example 7" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
 	</mx:ViewStack>
 	
 	
-</mx:Application>
+</s:Application>

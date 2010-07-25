@@ -25,6 +25,7 @@
 	<!-- This target builds both version of the swc. -->
     <target name="build-swc">
     
+      <echo message="Building Flex 3 SWC" />
     	<exec executable="${flex3.sdk}bin/compc">
 		    <arg value="-load-config=${flex3.sdk}/frameworks/flex-config.xml"/>    	  
 		    <arg value="-load-config+=swcconfig.xml"/>
@@ -33,6 +34,7 @@
  	    
  	    <move file="ObjectHandles.swc" toFile="ObjectHandles-2.0.${oh.build.num}_FLEX3.swc" />
 
+      <echo message="Building Flex 4 SWC" />
     	<exec executable="${flex4.sdk}bin/compc">
     	  <arg value="-load-config=${flex4.sdk}/frameworks/flex-config.xml"/>    	  
 		    <arg value="-load-config+=swcconfig-flex4.xml"/>
@@ -64,8 +66,13 @@
     		<arg value="tmp_src/ObjectHandles-2.0.${oh.build.num}/asdocs"/>
     		<arg value="-library-path+=../libs"/>
     		
-    		    		    	 
+    		<arg value="-theme"/>
+    		<arg value="${flex4.sdk}/frameworks/themes/Halo/halo.swc"/>
     	</exec>
+    	
+    	<copy  todir="../../../ObjectHandles-private/website/objecthandles/static/asdoc" >
+    	  <fileset dir="tmp_src/ObjectHandles-2.0.${oh.build.num}/asdocs"/>        
+  	  </copy>
 
 		<zip destfile="ObjectHandles-2.0.${oh.build.num}-src.zip" basedir="tmp_src" />
 		

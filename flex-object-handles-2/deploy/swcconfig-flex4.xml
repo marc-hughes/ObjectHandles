@@ -4,6 +4,7 @@
   <path-element>../src</path-element> 
  </source-path>
 </compiler>
+
 <output>ObjectHandles.swc</output>
 <include-classes>
  	<class>com.roguedevelopment.objecthandles.CircleHandle</class>

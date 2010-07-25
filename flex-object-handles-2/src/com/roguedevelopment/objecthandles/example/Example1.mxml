@@ -43,6 +43,7 @@ This is an example and not a part of the core ObjectHandles library.
 				>
 		<mx:Script>
 		<![CDATA[
+			import com.roguedevelopment.objecthandles.IHandle;
 			import com.roguedevelopment.objecthandles.ObjectChangedEvent;
 			import com.roguedevelopment.objecthandles.ObjectHandles;
 			import com.roguedevelopment.objecthandles.constraints.SizeConstraint;
@@ -61,8 +62,9 @@ This is an example and not a part of the core ObjectHandles library.
 				flexModel1 = new SimpleDataModel();
 				flexModel1.x = 50;
 				flexModel1.y = 150;
-				flexModel1.width = 50;
+				flexModel1.width = 150;
 				flexModel1.height = 50;
+				flexModel1.rotation = 30;
 				objectHandles.registerComponent( flexModel1, flexShape1 );
 
 				flexModel2 = new SimpleDataModel();
@@ -79,15 +81,19 @@ This is an example and not a part of the core ObjectHandles library.
 				constraint.maxHeight = 200;
 				
 				objectHandles.addEventListener(ObjectChangedEvent.OBJECT_MOVED, onObjectMoved );
-				objectHandles.addDefaultConstraint( constraint );							
+				objectHandles.addDefaultConstraint( constraint );		
+				objectHandles.selectionManager.setSelected( flexModel1 );
 			}
 			
 			protected function backgroundClick(event:MouseEvent) : void
 			{		
-//				if( event.target is ContainerBorderSkin )
-//				{				
-//					objectHandles.selectionManager.clearSelection();
-//				}
+							
+				if( ! (event.target is SimpleFlexShape) &&
+				    ! (event.target is IHandle) )
+				{
+					objectHandles.selectionManager.clearSelection();
+				}
+			
 			}
 			
 			protected function onObjectMoved(event:ObjectChangedEvent):void
@@ -96,8 +102,9 @@ This is an example and not a part of the core ObjectHandles library.
 			}
 		]]>
 	</mx:Script>				
-		<mx:Text selectable="false" text="Here are 2 flex-based components that listen to a data model.  There is a sizing constraint enforced.  In the upper right hand corner are two read-only components also listening to the same data model, so they should mimick what the larger ones are doing." 
-			width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
+		<mx:Text mouseEnabled="false" selectable="false" 
+				 text="Here are 2 flex-based components that listen to a data model.  There is a sizing constraint enforced.  In the upper right hand corner are two read-only components also listening to the same data model, so they should mimick what the larger ones are doing." 
+				 width="400" color="#000000" fontSize="14" fontWeight="normal" left="5" top="5" height="194"/>
 		
 		<example:SimpleFlexShape id="flexShape1" model="{flexModel1}" />
 		<example:SimpleFlexShape id="flexShape2" model="{flexModel2}" />
