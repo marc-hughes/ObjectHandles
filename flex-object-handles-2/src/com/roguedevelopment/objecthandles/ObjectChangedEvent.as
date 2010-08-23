@@ -5,6 +5,10 @@ package com.roguedevelopment.objecthandles
    public class ObjectChangedEvent extends Event
    {
 
+	   public static const OBJECT_MOVE_START:String = "objectMoveStart";
+	   public static const OBJECT_RESIZE_START:String = "objectResizeStart";
+	   public static const OBJECT_ROTATE_START:String = "objectRotateStart";
+
        public static const OBJECT_MOVED:String = "objectMoved";
        public static const OBJECT_RESIZED:String = "objectResized";
        public static const OBJECT_ROTATED:String = "objectRotated";

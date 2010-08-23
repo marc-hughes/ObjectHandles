@@ -67,6 +67,9 @@ package com.roguedevelopment.objecthandles
 	[Event(name="objectMoving",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
 	[Event(name="objectResizing",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
 	[Event(name="objectRotating",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectMoveStart",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectResizeStart",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]
+	[Event(name="objectRotateStart",type="com.roguedevelopment.objecthandles.ObjectChangedEvent")]	
     public class ObjectHandles extends EventDispatcher
     {
 		/**
@@ -586,6 +589,7 @@ package com.roguedevelopment.objecthandles
                 currentDragRole = HandleRoles.MOVE; // a mouse down on the component itself as opposed to a handle is a move operation.
                 currentHandleConstraint = null;
                 handleBeginDrag( event );
+				dispatchEvent( new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVE_START) );
             }
         }
         
@@ -1493,6 +1497,20 @@ package com.roguedevelopment.objecthandles
                 currentDragRole = handle.handleDescriptor.role;
                 currentHandleConstraint = handle.handleDescriptor.constraint;
                 handleBeginDrag(event);
+				
+				if( HandleRoles.isMove( currentDragRole ) )
+				{
+					dispatchEvent( new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVE_START) );
+				}
+				if( HandleRoles.isResize( currentDragRole ) )
+				{
+					dispatchEvent( new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_RESIZE_START) );
+				}
+				if( HandleRoles.isRotate( currentDragRole ) )
+				{
+					dispatchEvent( new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_ROTATE_START) );
+				}
+				
             }
         }
         
