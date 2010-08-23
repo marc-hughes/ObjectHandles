@@ -470,10 +470,13 @@ package com.roguedevelopment.objecthandles
 			applyTranslation( t );
 			
 			
-			dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
+			dispatchMoving();
 			
 			
 		}
+
+
+
 //        
 //        protected function onKeyDown(event:KeyboardEvent):void
 //        {
@@ -712,17 +715,44 @@ package com.roguedevelopment.objecthandles
 			
 			if (isMoved)
 			{								
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
+				dispatchMoving();
 			}
 			else if (isResized)
 			{				
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_RESIZING,true) );
+				dispatchResizing();
 			}
 			else if (isRotated)
 			{				
-				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_ROTATING,true) );
+				dispatchRotating();
 			}			
         }
+
+		private function dispatchRotating():void
+		{
+			if( willTrigger( ObjectChangedEvent.OBJECT_ROTATING ) )  // Don't create an event object unless it's actually needed.  Should help avoid GC and improve performance.
+			{				
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_ROTATING,true) );
+			}
+		}
+
+
+		private function dispatchResizing():void
+		{
+			if( willTrigger( ObjectChangedEvent.OBJECT_RESIZING ) )  // Don't create an event object unless it's actually needed.  Should help avoid GC and improve performance.
+			{
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_RESIZING,true) );
+			}
+		}
+		
+		protected function dispatchMoving():void
+		{
+			if( willTrigger( ObjectChangedEvent.OBJECT_MOVING ) ) // Don't create an event object unless it's actually needed.  Should help avoid GC and improve performance.
+			{
+				dispatchEvent(new ObjectChangedEvent(selectionManager.currentlySelected,ObjectChangedEvent.OBJECT_MOVING,true) );
+			}
+		}
+		
+
         
         /**
         * When resizing, there should be an "anchor point" that doesn't move.  Sometimes, we need to move the entire object around so
