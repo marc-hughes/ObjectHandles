@@ -39,7 +39,7 @@ package com.roguedevelopment.objecthandles
 		 * Some global settings for the handle representation. Set using class, not instance!!!
 		 *
 		 * Use to change the size of the handles.
-		 * usage: SpriteHandle.handleSize=4;
+		 * usage: SpriteHandle.handleSize=8;
 		 **/
 		public static var handleSize:Number = 10;
 

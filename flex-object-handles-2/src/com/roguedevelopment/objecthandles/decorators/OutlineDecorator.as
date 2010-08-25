@@ -13,7 +13,7 @@ package com.roguedevelopment.objecthandles.decorators
 		 * Some global settings for the decorator. Set using class, not instance!!!
 		 *
 		 * Use to change the width border.
-		 * usage: OutlineDecorator.lineWidth=1;
+		 * usage: OutlineDecorator.lineWidth=2;
 		 **/
 		public static var lineWidth:Number = 5;
 
