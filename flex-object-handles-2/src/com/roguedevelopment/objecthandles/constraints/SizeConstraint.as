@@ -38,6 +38,9 @@ package com.roguedevelopment.objecthandles.constraints
 		
 		public function applyConstraint( original:DragGeometry, translation:DragGeometry, resizeHandleRole:uint ) : void		
 		{
+			// Both are required for the logic to work
+			if(!original || !translation) return;
+			
 			if( ! isNaN( maxWidth ) )
 			{
 				if( (original.width + translation.width) > maxWidth )
